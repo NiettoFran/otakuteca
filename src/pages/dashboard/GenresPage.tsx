@@ -1,4 +1,4 @@
-import { Check, Pencil, Search, SearchX, Tags, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Plus, Search, SearchX, Tags, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -75,34 +75,45 @@ export const GenresPage = () => {
   }
 
   return (
-    <section className='max-w-2xl'>
+    <section className='mx-auto max-w-3xl'>
       <title>Géneros · Panel · Otakuteca</title>
-      <h1 className='font-heading text-3xl font-extrabold'>Géneros</h1>
-      <form onSubmit={create} className='mt-6 flex gap-2'>
-        <Input
-          aria-label='Nombre del género'
-          placeholder='Nuevo género'
-          maxLength={40}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <Button type='submit'>Agregar</Button>
-      </form>
-      {message && (
-        <p role='alert' className='mt-3 text-sm text-sakura'>
-          {message}
+      <div className='text-center'>
+        <h1 className='font-heading text-3xl font-extrabold'>Géneros</h1>
+        <p className='mt-1 text-lavanda'>
+          Creá, renombrá y ordená las etiquetas con las que clasificás tus obras.
         </p>
-      )}
-      <div className='relative mt-4'>
-        <Search className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-lavanda' />
-        <Input
-          type='search'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder='Buscá un género…'
-          aria-label='Buscar géneros'
-          className='h-9 pl-9'
-        />
+      </div>
+      <div className='mt-8 space-y-3 rounded-2xl border border-ciruela bg-abismo p-4'>
+        <form onSubmit={create} className='flex gap-2'>
+          <Input
+            aria-label='Nombre del género'
+            placeholder='Nuevo género'
+            maxLength={40}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className='h-9'
+          />
+          <Button type='submit' className='h-9'>
+            <Plus className='size-4' />
+            Agregar
+          </Button>
+        </form>
+        {message && (
+          <p role='alert' className='text-sm text-sakura'>
+            {message}
+          </p>
+        )}
+        <div className='relative'>
+          <Search className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-lavanda' />
+          <Input
+            type='search'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder='Buscá un género…'
+            aria-label='Buscar géneros'
+            className='h-9 pl-9'
+          />
+        </div>
       </div>
       <div className='mt-4'>
         {loading ? (
@@ -127,54 +138,70 @@ export const GenresPage = () => {
             <span className='break-all text-niebla'>{search.trim()}</span>».
           </PanelEmptyState>
         ) : (
-          <ul className='divide-y divide-ciruela rounded-2xl border border-ciruela bg-abismo'>
-            {visible.map((genre) => (
-              <li key={genre.id} className='flex items-center gap-2 p-3'>
-                {editing?.id === genre.id ? (
-                  <>
-                    <Input
-                      aria-label={`Renombrar ${genre.name}`}
-                      maxLength={40}
-                      value={editing.name}
-                      onChange={(e) => setEditing({ id: genre.id, name: e.target.value })}
-                      onKeyDown={(e) => e.key === 'Enter' && rename()}
-                    />
-                    <Button size='icon' aria-label='Guardar nombre' onClick={rename}>
-                      <Check className='size-4' />
-                    </Button>
-                    <Button
-                      size='icon'
-                      variant='outline'
-                      aria-label='Cancelar'
-                      onClick={() => setEditing(null)}
-                    >
-                      <X className='size-4' />
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <span className='flex-1 truncate'>{genre.name}</span>
-                    <Button
-                      size='icon'
-                      variant='outline'
-                      aria-label={`Renombrar ${genre.name}`}
-                      onClick={() => setEditing({ id: genre.id, name: genre.name })}
-                    >
-                      <Pencil className='size-4' />
-                    </Button>
-                    <Button
-                      size='icon'
-                      variant='destructive'
-                      aria-label={`Eliminar ${genre.name}`}
-                      onClick={() => askDelete(genre)}
-                    >
-                      <Trash2 className='size-4' />
-                    </Button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
+          <div className='overflow-hidden rounded-2xl border border-ciruela bg-abismo'>
+            <p className='border-b border-uva bg-ciruela/60 px-4 py-3 text-xs font-semibold tracking-wider text-lavanda uppercase'>
+              {visible.length === genres.length
+                ? `${genres.length} ${genres.length === 1 ? 'género' : 'géneros'}`
+                : `${visible.length} de ${genres.length} géneros`}
+            </p>
+            <ul className='divide-y divide-ciruela'>
+              {visible.map((genre) => (
+                <li
+                  key={genre.id}
+                  className='flex items-center gap-3 px-4 py-3 hover:bg-ciruela/30'
+                >
+                  <span
+                    aria-hidden
+                    className='grid size-9 shrink-0 place-items-center rounded-full bg-uva/60 font-heading font-bold text-sakura'
+                  >
+                    {genre.name.charAt(0).toUpperCase()}
+                  </span>
+                  {editing?.id === genre.id ? (
+                    <>
+                      <Input
+                        aria-label={`Renombrar ${genre.name}`}
+                        maxLength={40}
+                        value={editing.name}
+                        onChange={(e) => setEditing({ id: genre.id, name: e.target.value })}
+                        onKeyDown={(e) => e.key === 'Enter' && rename()}
+                      />
+                      <Button size='icon' aria-label='Guardar nombre' onClick={rename}>
+                        <Check className='size-4' />
+                      </Button>
+                      <Button
+                        size='icon'
+                        variant='outline'
+                        aria-label='Cancelar'
+                        onClick={() => setEditing(null)}
+                      >
+                        <X className='size-4' />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className='flex-1 truncate'>{genre.name}</span>
+                      <Button
+                        size='icon'
+                        variant='outline'
+                        aria-label={`Renombrar ${genre.name}`}
+                        onClick={() => setEditing({ id: genre.id, name: genre.name })}
+                      >
+                        <Pencil className='size-4' />
+                      </Button>
+                      <Button
+                        size='icon'
+                        variant='destructive'
+                        aria-label={`Eliminar ${genre.name}`}
+                        onClick={() => askDelete(genre)}
+                      >
+                        <Trash2 className='size-4' />
+                      </Button>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
       <ConfirmDialog
