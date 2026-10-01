@@ -80,10 +80,13 @@ feature se cierra con `pnpm lint`, `pnpm build` y una verificación manual en el
   `src/lib/api/pagination.ts`). Los controles van arriba (`PaginationBar`) y el "Mostrando x–y de
   N" abajo (`PaginationSummary`). Las mutaciones invalidan la `queryKey` del listado.
 - **Páginas del dashboard**: todas se ven iguales. (1) Encabezado con `PageHeader` (título +
-  descripción de lo que hace la página). (2) Contenido centrado (`mx-auto max-w-3xl`, o `max-w-5xl`
-  si hay tabla ancha). (3) Todo botón lleva ícono + texto + tooltip con `TooltipHint`; el
-  `cursor: pointer` de los botones es una regla global en `src/styles/index.css`. Los listados
-  vacíos o sin resultados usan `PanelEmptyState`, no `EmptyState`.
+  descripción de lo que hace la página). (2) Contenido centrado (`mx-auto max-w-3xl`, `max-w-5xl`
+  si hay tabla ancha o `max-w-6xl` en formularios de dos columnas). (3) Todo botón lleva ícono +
+  texto + tooltip con `TooltipHint`; el `cursor: pointer` de los botones es una regla global en
+  `src/styles/index.css`. (4) Los links de la navbar del dashboard también llevan ícono (lucide) y
+  los que salen del panel, como «Ver el sitio», abren en pestaña nueva
+  (`target='_blank' rel='noopener noreferrer'`). Los listados vacíos o sin resultados usan
+  `PanelEmptyState`, no `EmptyState`.
 
 ## Reglas generales
 
