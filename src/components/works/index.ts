@@ -1,6 +1,8 @@
 export { CatalogFilters } from './CatalogFilters'
 export { CoverImage } from './CoverImage'
 export { ProgressBar } from './ProgressBar'
+export { RankingPodiumCard } from './RankingPodiumCard'
+export { RankingRow } from './RankingRow'
 export { StarRating } from './StarRating'
 export { StatusBadge } from './StatusBadge'
 export { WorkCard } from './WorkCard'
