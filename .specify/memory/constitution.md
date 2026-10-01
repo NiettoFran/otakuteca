@@ -1,50 +1,100 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Versión: (plantilla sin ratificar) → 1.0.0
+- Principios definidos:
+  - I. Simplicidad orientada al MVP
+  - II. Idioma y tono personal
+  - III. Cero alcance fantasma (carga manual estricta)
+  - IV. Verificable por un visitante no técnico
+  - V. Seguridad y aislamiento por defecto
+- Secciones agregadas: Restricciones técnicas, Flujo de trabajo, Governance
+- Secciones eliminadas: ninguna
+- Plantillas:
+  - ✅ .specify/templates/plan-template.md (Constitution Check es genérico; toma los gates de este archivo)
+  - ✅ .specify/templates/spec-template.md (sin cambios necesarios)
+  - ✅ .specify/templates/tasks-template.md (sin cambios necesarios)
+- TODOs diferidos: ninguno
+-->
+
+# Otakuteca Constitution
+
+Otakuteca es un catálogo digital personal y público para centralizar y compartir el historial
+de anime y manga de su creador.
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Simplicidad orientada al MVP
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- Ante dos opciones, se DEBE elegir la más directa.
+- El enrutamiento multipágina DEBE ser limpio y predecible.
+- NO se crean componentes de React, hooks ni abstracciones de Tailwind "por si acaso":
+  solo se abstrae cuando hay al menos dos usos reales.
+- Si la funcionalidad básica cumple, se avanza.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Por qué**: es una v1. Lo que no se necesita hoy es deuda, no inversión.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. Idioma y tono personal
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+- Todo el producto (textos, botones, mensajes de error, metadatos) DEBE estar en español
+  de Argentina (voseo: "mirá", "filtrá", "elegí").
+- Los textos y el diseño NO DEBEN sonar corporativos ni genéricos: es el espacio de alguien
+  que comparte lo que le gusta con amigos y conocidos.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Por qué**: la personalidad es parte del producto; un catálogo neutro no tiene razón de existir.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. Cero alcance fantasma (carga manual estricta)
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- NO se implementan conexiones a APIs externas de catálogo (MyAnimeList, Kitsu, AniList, etc.).
+- NO se implementan sistemas automáticos para traer portadas ni metadatos.
+- Toda la carga de datos en v1 es 100 % manual.
+- Cualquier idea de automatización se anota en el backlog de la v2 y NO se codifica.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**Por qué**: el alcance fantasma es lo que más rápido mata un MVP.
+
+### IV. Verificable por un visitante no técnico
+
+- La interfaz pública DEBE explicarse sola: si alguien que recibe el enlace necesita
+  instrucciones para usar los filtros o navegar el catálogo, la UI falló.
+- Cada funcionalidad DEBE poder validarse haciendo clics en la web, sin leer código.
+- Los criterios de aceptación de cada spec se escriben como acciones de un visitante.
+
+**Por qué**: el público objetivo son amigos y conocidos, no desarrolladores.
+
+### V. Seguridad y aislamiento por defecto
+
+- La vista pública es de solo lectura y DEBE ser a prueba de manipulaciones: ningún dato
+  se modifica desde ella.
+- El panel de control DEBE estar protegido con autenticación; ninguna ruta, endpoint ni
+  acción de edición puede quedar accesible sin sesión válida.
+- Las credenciales y secretos NUNCA se suben al repositorio: van en variables de entorno
+  fuera del control de versiones.
+- La protección se valida del lado del servidor, no solo ocultando botones en la UI.
+
+**Por qué**: el objetivo final es publicar el sitio; lo público no puede ser la puerta de entrada
+a lo privado.
+
+## Restricciones técnicas
+
+- Stack actual: React + TypeScript + Vite, Tailwind CSS y shadcn/ui, desplegado en Vercel.
+- Agregar una dependencia nueva requiere justificar por qué lo existente no alcanza.
+- El código y los nombres técnicos pueden estar en inglés; todo lo que ve el usuario va en
+  español de Argentina.
+
+## Flujo de trabajo
+
+- Cada feature pasa por spec → plan → tareas antes de implementarse.
+- El "Constitution Check" del plan DEBE verificar los cinco principios; cualquier excepción
+  se documenta en la tabla de complejidad con su justificación.
+- Antes de cerrar una feature: `pnpm lint`, `pnpm build` y una verificación manual en el
+  navegador desde la vista pública.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Esta constitución prevalece sobre cualquier otra práctica del proyecto.
+- Las enmiendas se hacen editando este archivo, con su Sync Impact Report y bump de versión:
+  - MAJOR: se quita o redefine un principio.
+  - MINOR: se agrega un principio o sección, o se amplía de forma sustancial.
+  - PATCH: aclaraciones y redacción.
+- Toda revisión de specs, planes y código DEBE chequear el cumplimiento de estos principios.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-10-01 | **Last Amended**: 2026-10-01
