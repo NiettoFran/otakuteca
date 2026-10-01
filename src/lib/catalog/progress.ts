@@ -1,4 +1,4 @@
-import type { Work } from '../types'
+import type { Work } from '../works/types'
 import { getUnitLabels } from './labels'
 
 export const getProgress = (work: Work) => {

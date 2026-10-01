@@ -1,4 +1,4 @@
-import type { Work } from '../types'
+import type { Work } from '../works/types'
 
 export const MAX_RANKING = 10
 

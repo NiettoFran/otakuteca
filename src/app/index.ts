@@ -1,0 +1,1 @@
+export { OtakutecaApp } from './App'

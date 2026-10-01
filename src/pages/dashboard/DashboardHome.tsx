@@ -1,14 +1,26 @@
-import { Plus, Star } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
-import { ConfirmDialog, EmptyState, StatusBadge } from '@/components'
-import { Button, buttonVariants } from '@/components/ui'
-import { useCatalog } from '@/hooks'
-import { cn, isSessionError, sortWorks, supabase, TYPE_LABEL, type Work } from '@/lib'
+import {
+  ConfirmDialog,
+  EmptyState,
+  PaginationBar,
+  PaginationSummary,
+  WorksTable,
+} from '@/components'
+import { buttonVariants } from '@/components/ui'
+import { useWorksPage, worksPageKey } from '@/hooks'
+import { cn, DEFAULT_PAGE_SIZE, isSessionError, supabase, type Work } from '@/lib'
 
 export const DashboardHome = () => {
-  const { works, loading, error, reload } = useCatalog()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
+  const { data, isPending: loading, isError: error } = useWorksPage(page, pageSize)
+  const works = data?.works ?? []
+  const total = data?.total ?? 0
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [toDelete, setToDelete] = useState<Work | null>(null)
   const [deleteError, setDeleteError] = useState(false)
@@ -21,7 +33,10 @@ export const DashboardHome = () => {
       return
     }
     if (error) setDeleteError(true)
-    else reload()
+    else {
+      await queryClient.invalidateQueries({ queryKey: worksPageKey })
+      if (works.length === 1 && page > 1) setPage(page - 1)
+    }
   }
 
   return (
@@ -44,43 +59,27 @@ export const DashboardHome = () => {
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
           <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
-        ) : works.length === 0 ? (
+        ) : total === 0 ? (
           <EmptyState message='Todavía no cargaste ninguna obra. ¡Empezá con la primera!'>
             <Link to='/dashboard/obras/nueva' className={cn(buttonVariants(), 'rounded-full')}>
               Agregar obra
             </Link>
           </EmptyState>
         ) : (
-          <ul className='divide-y divide-ciruela rounded-2xl border border-ciruela bg-abismo'>
-            {sortWorks(works).map((work) => (
-              <li key={work.id} className='flex flex-wrap items-center gap-3 p-4'>
-                <div className='min-w-0 flex-1'>
-                  <p className='flex items-center gap-2 font-medium'>
-                    <span className='truncate'>{work.title}</span>
-                    {work.is_favorite && (
-                      <Star
-                        className='size-4 shrink-0 fill-dorado text-dorado'
-                        aria-label='Favorita'
-                      />
-                    )}
-                  </p>
-                  <p className='mt-1 text-sm text-lavanda'>{TYPE_LABEL[work.type]}</p>
-                </div>
-                <StatusBadge status={work.status} type={work.type} />
-                <div className='flex gap-2'>
-                  <Link
-                    to={`/dashboard/obras/${work.id}`}
-                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                  >
-                    Editar
-                  </Link>
-                  <Button variant='destructive' size='sm' onClick={() => setToDelete(work)}>
-                    Eliminar
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className='space-y-3'>
+            <PaginationBar
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size)
+                setPage(1)
+              }}
+            />
+            <WorksTable works={works} onDelete={setToDelete} />
+            <PaginationSummary page={page} pageSize={pageSize} total={total} />
+          </div>
         )}
       </div>
       <ConfirmDialog

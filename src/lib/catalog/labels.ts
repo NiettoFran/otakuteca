@@ -1,4 +1,4 @@
-import type { WorkStatus, WorkType } from '../types'
+import type { WorkStatus, WorkType } from '../works/types'
 
 export const TYPE_LABEL: Record<WorkType, string> = { anime: 'Anime', manga: 'Manga' }
 

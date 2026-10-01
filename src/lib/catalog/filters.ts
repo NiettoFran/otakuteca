@@ -1,4 +1,4 @@
-import type { Work, WorkStatus } from '../types'
+import type { Work, WorkStatus } from '../works/types'
 import { SLUG_STATUS } from './labels'
 
 export type CatalogFilters = { status: WorkStatus | null; favorites: boolean }

@@ -1,4 +1,4 @@
-import type { Work, WorkStatus, WorkType } from '../types'
+import type { Work, WorkStatus, WorkType } from '../works/types'
 import { STATUS_ORDER } from './labels'
 
 export const getHomeCounters = (works: Work[]) => ({

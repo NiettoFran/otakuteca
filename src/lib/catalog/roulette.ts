@@ -1,4 +1,4 @@
-import type { Work, WorkType } from '../types'
+import type { Work, WorkType } from '../works/types'
 
 export const pickRandomPending = (works: Work[], type: WorkType, previousId: number | null) => {
   const candidates = works.filter((w) => w.status === 'pending' && w.type === type)

@@ -1,15 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router'
 
 import './styles/index.css'
 
-import { OtakutecaApp } from './App.tsx'
+import { OtakutecaApp } from './app'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <OtakutecaApp />
-    </BrowserRouter>
+    <OtakutecaApp />
   </StrictMode>
 )

@@ -1,8 +1,10 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { ConfirmDialog, WorkForm } from '@/components'
 import { Button } from '@/components/ui'
+import { worksPageKey } from '@/hooks'
 import {
   clearDraft,
   draftKey,
@@ -65,6 +67,7 @@ const saveGenres = async (workId: number, genreIds: number[]) => {
 
 export const WorkEditor = ({ work }: { work: Work | null }) => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const location = useLocation()
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<ReactNode>(null)
@@ -148,6 +151,7 @@ export const WorkEditor = ({ work }: { work: Work | null }) => {
       }
 
       clearDraft(key)
+      await queryClient.invalidateQueries({ queryKey: worksPageKey })
       navigate('/dashboard')
     } finally {
       setSubmitting(false)
@@ -183,6 +187,7 @@ export const WorkEditor = ({ work }: { work: Work | null }) => {
       return
     }
     clearDraft(key)
+    await queryClient.invalidateQueries({ queryKey: worksPageKey })
     navigate('/dashboard')
   }
 
