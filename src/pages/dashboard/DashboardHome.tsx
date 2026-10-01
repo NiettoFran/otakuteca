@@ -8,7 +8,7 @@ import {
   EmptyState,
   PaginationBar,
   PaginationSummary,
-  WorksEmptyState,
+  PanelEmptyState,
   WorksFilters,
   WorksTable,
 } from '@/components'
@@ -92,7 +92,7 @@ export const DashboardHome = () => {
         ) : error ? (
           <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
         ) : total === 0 && filtered ? (
-          <WorksEmptyState
+          <PanelEmptyState
             icon={SearchX}
             title='No encontramos nada'
             action={
@@ -110,9 +110,9 @@ export const DashboardHome = () => {
             ) : (
               'No hay obras que coincidan con los filtros elegidos.'
             )}
-          </WorksEmptyState>
+          </PanelEmptyState>
         ) : total === 0 ? (
-          <WorksEmptyState
+          <PanelEmptyState
             icon={Library}
             title='Todavía no cargaste ninguna obra'
             action={
@@ -122,7 +122,7 @@ export const DashboardHome = () => {
             }
           >
             ¡Empezá con la primera!
-          </WorksEmptyState>
+          </PanelEmptyState>
         ) : (
           <div
             className={cn('space-y-3 transition-opacity', refreshing && 'opacity-60')}
