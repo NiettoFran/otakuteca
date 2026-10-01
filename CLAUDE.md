@@ -68,8 +68,13 @@ en inglés.
 
 ## Supabase
 
-- Variables en `.env.local` (fuera de git): `VITE_SUPABASE_URL` y
-  `VITE_SUPABASE_PUBLISHABLE_KEY`. Solo la clave pública va al cliente; nunca la service role.
+- Desarrollo y validación contra **Supabase local** (Docker): `pnpm dlx supabase start` aplica
+  `supabase/migrations/` y `supabase/seed.sql`; `pnpm dlx supabase db reset` vuelve al estado
+  inicial (borra también los usuarios locales). La CLI no se agrega a `package.json`. El seed
+  **nunca** se ejecuta en producción, que solo recibe la migración y el catálogo real cargado a mano.
+- Variables en `.env.local` (fuera de git), con los valores **locales**: `VITE_SUPABASE_URL` y
+  `VITE_SUPABASE_PUBLISHABLE_KEY`. Los de producción van solo en Vercel. Solo la clave pública va
+  al cliente; nunca la service role.
 - La seguridad se garantiza con **RLS** en la base, no ocultando botones: lectura pública
   (anónima) y escritura solo para usuarios presentes en la tabla `admins` (función `is_admin()`).
 - Migraciones SQL en `supabase/migrations/` (p. ej. `0001_init.sql`). El modelo (`works`,

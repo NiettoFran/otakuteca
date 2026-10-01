@@ -65,8 +65,10 @@ en Supabase abriría la escritura — se acepta la tabla de una fila por Princip
 ## R3. Enrutamiento multipágina y protección de `/dashboard`
 
 **Decision**: `react-router` v7 en modo declarativo (`BrowserRouter` + `Routes`), con dos layouts:
-`PublicLayout` (menú público) y `DashboardLayout` envuelto en un guard `RequireAdmin` que, sin
-sesión válida, hace `<Navigate to="/" replace />` (FR-004). Las rutas de `/login` y `/dashboard`
+`PublicLayout` (menú público) y `DashboardLayout` envuelto en un guard `RequireAdmin` que, si se
+entra sin sesión válida, hace `<Navigate to="/" replace />` (FR-004). El guard decide solo al
+entrar: si la sesión se pierde con el panel abierto (vence o se cierra en otra pestaña), no
+redirige, y el flujo de R8 se encarga al guardar. Las rutas de `/login` y `/dashboard`
 se cargan con `React.lazy` para que el bundle público no incluya el panel.
 
 **Rationale**: el sitio pasa a tener ~14 rutas con parámetros (`/animes/:id`), query params para
@@ -153,21 +155,26 @@ validación solo HTML nativa (no cubre progreso ≤ total ni mensajes con voseo)
 
 ## R8. Sesión vencida durante una edición (FR-015, SC-009)
 
-**Decision**: el formulario guarda un borrador en `localStorage` (clave `otakuteca:draft:new` o
-`otakuteca:draft:<id>`) en cada cambio. Al guardar, si no hay sesión o Supabase responde con error
+**Decision**: el formulario de obra (alta y edición; no el editor de Ranking ni Géneros) guarda
+un borrador en `localStorage` (clave `otakuteca:draft:new` o `otakuteca:draft:<id>`) en cada
+cambio. Si la sesión se pierde con el formulario abierto, el guard no saca al Administrador de la
+página (R3): puede seguir escribiendo y el flujo arranca recién al guardar. Al guardar, si no hay sesión o Supabase responde con error
 de autenticación (HTTP 401 / JWT vencido / violación RLS por rol anónimo, o un `update` que
 afecta 0 filas porque RLS lo filtró en silencio), se conserva el borrador,
 se navega a `/login?next=<ruta>&motivo=sesion` y `/login` muestra el aviso "Tu sesión venció.
 Iniciá sesión de nuevo y recuperamos lo que estabas cargando". Tras iniciar sesión se vuelve a
 `next` y el formulario se inicializa desde el borrador con un aviso visible. El borrador se borra
-al guardar con éxito o al descartar.
+al guardar con éxito o al descartar. El mismo mecanismo recupera el formulario si el Administrador
+salió sin guardar o se cerró la pestaña (decisión de la spec, Clarifications 2026-10-01). En
+Ranking y Géneros, un error de sesión lleva a `/login` con el mismo aviso, pero sin borrador.
 
 **Rationale**: cubre el peor caso (token de refresco inválido) sin backend; `localStorage` sobrevive
 la redirección y un cierre accidental de pestaña. `next` solo acepta rutas que empiezan con
 `/dashboard` (evita open redirect).
 
 **Alternatives considered**: `sessionStorage` (se pierde si se cierra la pestaña); modal de login
-sobre el formulario (más complejo de componer con el guard).
+sobre el formulario (más complejo de componer con el guard); redirigir apenas se detecta la
+pérdida de sesión (interrumpe al Administrador mientras escribe; descartado en la spec).
 
 ---
 
@@ -176,15 +183,21 @@ sobre el formulario (más complejo de componer con el guard).
 **Decision**: columna `ranking_position` (1–10, única, solo anime favorito) en `works`. El
 Administrador edita el Ranking en `/dashboard/ranking`: elige hasta 10 animes favoritos y los
 ordena (subir/bajar). Al guardar se llama a una función RPC `set_anime_ranking(work_ids bigint[])`
-que, en una transacción, limpia todas las posiciones y asigna 1..n en el orden recibido.
-Desmarcar favorito pone `ranking_position = null` automáticamente (trigger en la base; un
-`CHECK` impide cualquier estado inconsistente).
+que, en una transacción, valida de forma explícita que todos los ids sean animes favoritos,
+limpia todas las posiciones y asigna 1..n en el orden recibido. La validación tiene que ser
+explícita porque el trigger de normalización corre antes del `CHECK` y anularía en silencio la
+posición de una obra no favorita. Desmarcar favorito o borrar la obra deja un hueco en
+`ranking_position`. El sitio numera el Ranking por orden (1..n), así que el hueco no se ve y los
+de abajo "suben" solos (FR-026), sin lógica extra de compactación en la base. Los cambios de
+`ranking_position` no tocan `updated_at`, así que reordenar el top no altera el orden de las
+grillas.
 
 **Rationale**: reordenar (p. ej. intercambiar 1 y 2) con posiciones únicas exige atomicidad; con
 updates sueltos chocaría la restricción única o quedaría un estado intermedio. Una RPC de pocas
 líneas es la vía más directa y nunca deja posiciones duplicadas (US7-5).
 
-**Alternatives considered**: campo "posición" dentro del formulario de cada obra (no permite
+**Alternatives considered**: compactar las posiciones en la base con un trigger `AFTER DELETE`/
+`UPDATE` (mismo resultado visible, más SQL); campo "posición" dentro del formulario de cada obra (no permite
 intercambiar sin pasos intermedios; mala UX); drag & drop (dependencia extra, botones
 subir/bajar alcanzan para 10 ítems).
 
@@ -194,7 +207,8 @@ subir/bajar alcanzan para 10 ítems).
 
 **Decision**: índice único `(type, lower(btrim(title)))`. El cliente además recorta el título
 antes de guardar. Ante error `23505` en ese índice, el cliente busca la obra existente
-(`ilike` sobre el título recortado + tipo) y muestra: "Ya cargaste «Naruto» como anime." con
+(`ilike` sobre el título recortado, con `\`, `%` y `_` escapados para que no actúen como
+comodines, + tipo) y muestra: "Ya cargaste «Naruto» como anime." con
 botón "Editar esa obra".
 
 **Rationale**: la base garantiza la regla aunque haya dos pestañas abiertas; el cliente solo
@@ -245,7 +259,8 @@ la intención sin depender de ocultamiento (la seguridad es RLS).
 **Decision**: sin framework de tests automatizados en v1. La verificación es la que fija la
 Constitución: `pnpm lint`, `pnpm build` y validación manual en el navegador siguiendo
 [quickstart.md](./quickstart.md), más verificación de RLS con `curl` usando la clave pública
-(escrituras anónimas deben fallar).
+(escrituras anónimas deben fallar). Todo corre contra Supabase local (R16); los `curl` se repiten
+contra producción después del deploy.
 
 **Rationale**: Principio IV (cada funcionalidad se valida con clics) y Principio I (no agregar
 Vitest/Playwright sin necesidad demostrada). Las reglas críticas están garantizadas por
@@ -258,13 +273,36 @@ razonable para v2 si la lógica crece; Playwright e2e: costo de setup alto para 
 
 ## R15. Configuración y secretos (Principio V)
 
-**Decision**: variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` en `.env.local`
-(ya ignorado por `*.local` en `.gitignore`) y en Environment Variables de Vercel. Se commitea un
+**Decision**: variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`. En `.env.local`
+(ya ignorado por `*.local` en `.gitignore`) van los valores de Supabase local (R16); los de
+producción van solo en Environment Variables de Vercel. Se commitea un
 `.env.example` sin valores. La clave `service_role`/secret **nunca** se usa en el cliente ni se
 guarda en el repo.
 
 **Rationale**: la clave publicable está diseñada para exponerse en el navegador; su poder lo
 limita RLS. Las contraseñas del Administrador viven solo en Supabase Auth.
+
+---
+
+## R16. Entorno local y paso a producción
+
+**Decision**: todo el desarrollo y la validación (seed, V1–V10, base vacía, catálogo de 200 obras,
+chequeos con `curl`) corren contra **Supabase local**: la CLI de Supabase con Docker, invocada con
+`pnpm dlx supabase` (sin agregarla a `package.json`). `supabase start` levanta Postgres, Auth,
+PostgREST y Studio, y aplica `supabase/migrations/` y `supabase/seed.sql`. `supabase db reset`
+vuelve al estado inicial. `.env.local` apunta a `http://127.0.0.1:54321` con la clave publicable
+local. Cuando todo pasa, se aplica la misma migración al proyecto de producción, que arranca vacío;
+se crea ahí al Administrador y el catálogo real se carga a mano desde `/dashboard` del deploy. El
+seed **nunca** se ejecuta en producción y en producción no se "limpia" nada.
+
+**Rationale**: decisión de la spec (Clarifications 2026-10-01, Assumptions "Entorno de pruebas").
+Elimina el riesgo de borrar el catálogo real con un `truncate` y permite resetear la base local
+tantas veces como haga falta. La misma migración en los dos entornos garantiza que lo validado es
+lo que se publica.
+
+**Alternatives considered**: un segundo proyecto Supabase en la nube (no requiere Docker, pero no
+es lo que eligió el autor); validar en el proyecto real antes de cargar datos (obliga a vaciarlo
+con cuidado y no sirve para validar cambios futuros).
 
 ---
 
@@ -274,6 +312,9 @@ limita RLS. Las contraseñas del Administrador viven solo en Supabase Auth.
 |-------------|--------|---------------------------------|
 | `@supabase/supabase-js` | Datos, auth y RLS | No hay backend ni persistencia en el proyecto |
 | `react-router` | Multipágina, parámetros, rutas protegidas | Hoy `App.tsx` renderiza una sola página |
+
+Herramienta de desarrollo (no es dependencia del proyecto): CLI de Supabase vía `pnpm dlx supabase`
+(requiere Docker), para correr la base local (R16). No entra en `package.json` ni en el bundle.
 
 Componentes shadcn a agregar con `pnpm dlx shadcn add` (no son dependencias nuevas: usan
 `@base-ui/react` ya instalado): `input`, `textarea`, `label`, `select`, `checkbox`, `badge`,

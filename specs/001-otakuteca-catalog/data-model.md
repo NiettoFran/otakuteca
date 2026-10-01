@@ -42,12 +42,12 @@ el tipo (FR-022).
 | `long_review` | `text` | sí | `null` | Opcional; solo en detalle |
 | `parts` | `integer` | sí | `null` | Temporadas (anime) / tomos (manga); informativo; ≥ 1 |
 | `total_units` | `integer` | sí | `null` | Total de episodios / capítulos; ≥ 1; `null` = desconocido (en emisión) |
-| `progress` | `integer` | no | `0` | Episodios vistos / capítulos leídos; ≥ 0 y ≤ `total_units` si existe |
+| `progress` | `integer` | no | `0` | Episodios vistos / capítulos leídos; ≥ 0 y ≤ `total_units` si existe. Vacío en el formulario → `0` (el cliente nunca envía `null`, FR-009) |
 | `rating` | `numeric(2,1)` | sí | `null` | 0,5–5 en pasos de 0,5; `null` = "Sin calificar" |
 | `is_favorite` | `boolean` | no | `false` | (FR-009) |
-| `ranking_position` | `smallint` | sí | `null` | 1–10; única; solo si `type = 'anime'` y `is_favorite` (FR-016) |
+| `ranking_position` | `smallint` | sí | `null` | 1–10; única; solo si `type = 'anime'` y `is_favorite` (FR-016). Puede tener huecos (p. ej. 1, 3) tras una baja o al desmarcar favorito; el sitio numera por orden, no por este valor (FR-026) |
 | `created_at` | `timestamptz` | no | `now()` | Fecha de alta |
-| `updated_at` | `timestamptz` | no | `now()` | Última modificación (trigger); define el orden por defecto |
+| `updated_at` | `timestamptz` | no | `now()` | Última modificación (trigger, sin contar cambios de `ranking_position`); define el orden por defecto |
 
 ### Restricciones
 
@@ -73,7 +73,9 @@ unique (ranking_position)                                                -- null
    (Edge case "Pasar a Completado").
 3. Si `is_favorite = false` o `type <> 'anime'` → `ranking_position := null`
    (FR-016: al dejar de ser favorito pierde su posición).
-4. `updated_at := now()`.
+4. `updated_at := now()` en los `INSERT` y en los `UPDATE` que cambian alguna columna además de
+   `ranking_position` (comparando `to_jsonb(new) - 'ranking_position' - 'updated_at'` contra
+   `old`). Así, guardar el Ranking no altera el orden por defecto de las grillas.
 
 El formulario replica 2 y 3 para que el Administrador lo vea antes de guardar; la base lo
 garantiza igual.
@@ -88,7 +90,8 @@ al anterior (FR-010). Efectos:
 | `* → completed` con total conocido | `progress = total_units` (barra llena) |
 | `pending → *` | La obra sale de Pendientes y de la Ruleta |
 | `* → pending` | La obra entra en Pendientes y en la Ruleta de su tipo |
-| `is_favorite: true → false` | Pierde `ranking_position`; deja de destacarse y de figurar en "Favoritos" |
+| `is_favorite: true → false` | Pierde `ranking_position`; deja de destacarse y de figurar en "Favoritos". Los animes que estaban debajo en el Ranking suben un puesto en lo que ve el público (numeración por orden) |
+| Baja de una obra rankeada | Igual que el caso anterior: queda un hueco en `ranking_position`, invisible para el público |
 
 ---
 
@@ -148,9 +151,15 @@ Todas las obras son públicas en v1 (Assumptions: Visibilidad).
 
 1. Si `not is_admin()` → error `42501`.
 2. Si `cardinality(p_work_ids) > 10` o hay ids repetidos → error `22023`.
-3. `update works set ranking_position = null where ranking_position is not null`.
-4. Asigna `ranking_position = ordinal` (1..n) a cada id en el orden recibido.
-   Si algún id no es anime favorito, el `CHECK` aborta todo (no queda estado intermedio).
+3. Si `(select count(*) from public.works where id = any(p_work_ids) and type = 'anime' and
+   is_favorite) <> cardinality(p_work_ids)` → error `22023`. Cubre ids inexistentes y obras que no
+   son animes favoritos. Esta validación tiene que ser explícita: el `CHECK` no alcanza, porque el
+   trigger `works_before_write` corre antes y pondría `ranking_position := null` en silencio.
+4. `update works set ranking_position = null where ranking_position is not null`.
+5. Asigna `ranking_position = ordinal` (1..n) a cada id en el orden recibido
+   (`unnest(p_work_ids) with ordinality`).
+
+Como es una sola llamada, cualquier error revierte todo: nunca queda un estado intermedio.
 
 Contrato completo en [contracts/data-access.md](./contracts/data-access.md).
 
@@ -199,10 +208,10 @@ Escritos a mano (esquema chico); no se usa `supabase gen types` en v1.
 | Animes vistos (Inicio) | `type = anime ∧ status = completed` | FR-024 |
 | Favoritos (Inicio) | `is_favorite` (anime + manga) | FR-024 |
 | Mangas leídos (Inicio) | `type = manga ∧ status = completed` | FR-024 |
-| Distribución por estado | conteo por `status` (etiqueta neutra "En curso" cuando mezcla tipos) | FR-025 |
+| Distribución por estado | conteo por `status` (etiqueta neutra "En curso" cuando mezcla tipos) | FR-022, FR-025 |
 | Anime vs. manga | conteo por `type`, desglosado por estado | FR-025 |
 | Por género | conteo de obras por género (una obra suma en cada uno); obras sin géneros → "Sin género" | FR-025 |
-| Ranking | `type = anime ∧ ranking_position ≠ null`, orden ascendente, máx. 10 | FR-026 |
+| Ranking | `type = anime ∧ ranking_position ≠ null`, orden ascendente, máx. 10; se numera por índice (1..n), no por `ranking_position` | FR-026 |
 | Pendientes | `status = pending` (ambos tipos) | FR-027 |
 | Ruleta | aleatorio entre `status = pending ∧ type = elegido`, excluyendo el último resultado si hay > 1 | FR-028 |
 | Filtros | `estado` (uno de los 4) ∧ `favoritos` (bool), combinables | FR-023 |

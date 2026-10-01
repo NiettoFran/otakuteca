@@ -32,10 +32,13 @@ lucide-react (existentes). Nuevas: `react-router` 7 (modo declarativo) y `@supab
 
 **Storage**: Supabase Postgres (tablas `works`, `genres`, `work_genres`, `admins`; RLS; RPC
 `set_anime_ranking`). Ver [data-model.md](./data-model.md). La migración está versionada en
-`supabase/migrations/`.
+`supabase/migrations/`. Desarrollo y validación contra **Supabase local** (CLI vía
+`pnpm dlx supabase` + Docker, con `supabase/seed.sql`); producción arranca vacía y solo recibe la
+migración ([research.md R16](./research.md#r16-entorno-local-y-paso-a-producción)).
 
 **Testing**: sin framework automatizado en v1 (R14). Verificación con `pnpm lint`, `pnpm build`,
-los escenarios manuales V1–V10 de [quickstart.md](./quickstart.md) y los chequeos de RLS con `curl`.
+los escenarios manuales V1–V10 de [quickstart.md](./quickstart.md) y los chequeos de RLS con `curl`,
+todo contra la base local; los `curl` se repiten contra producción después del deploy.
 
 **Target Platform**: navegadores modernos, desde celular (375 px) hasta escritorio. Hosting
 estático en Vercel (`vercel.json` ya tiene la reescritura SPA) y Supabase como backend gestionado.
@@ -59,11 +62,11 @@ rutas de `/dashboard`.
 
 | Principio | Gate | Pre-research | Post-design |
 |-----------|------|--------------|-------------|
-| **I. Simplicidad MVP** | Opción más directa; enrutamiento limpio; abstracción solo con ≥ 2 usos | ✅ | ✅ Sin servidor propio (Supabase directo). React Router declarativo con rutas planas y predecibles. Sin TanStack Query, sin form libs, sin librería de gráficos. Componentes compartidos solo con ≥ 2 usos reales (ver Project Structure). Un hook de datos (`useCatalog`) usado en todas las páginas |
+| **I. Simplicidad MVP** | Opción más directa; enrutamiento limpio; abstracción solo con ≥ 2 usos | ✅ | ✅ Sin servidor propio (Supabase directo). React Router declarativo con rutas planas y predecibles. Sin TanStack Query, sin form libs, sin librería de gráficos. Abstracciones nuevas solo con ≥ 2 usos reales; los archivos con un solo uso (`CatalogFilters`, `Counter`, `useMotionSet`, `motion.ts`) salen de dividir código, no de abstraer (ver Project Structure). Un hook de datos (`useCatalog`) usado en todas las páginas. Ranking sin huecos visibles numerando por orden en el cliente, sin lógica de compactación en la base. La CLI de Supabase se usa con `pnpm dlx` y no entra en `package.json` |
 | **II. Idioma y tono** | Todo lo visible en es-AR con voseo, tono personal | ✅ | ✅ Rutas (`/estadisticas`, `/pendientes`, `/ruleta`), etiquetas, estados vacíos y errores están definidos con voseo en [contracts/routes.md](./contracts/routes.md) y [contracts/data-access.md](./contracts/data-access.md). Código en inglés |
 | **III. Cero alcance fantasma** | Sin APIs externas de catálogo ni automatizaciones | ✅ | ✅ Portadas como URL pegada a mano; fallback local. Sin MAL/AniList/Kitsu. Búsqueda, ranking de mangas y subida de imágenes quedan fuera |
 | **IV. Verificable por no técnicos** | UI autoexplicativa; validable con clics | ✅ | ✅ Los filtros viven en la URL (Atrás funciona) y hay botón "Ver todo". Hay estados vacíos explícitos. [quickstart.md](./quickstart.md) valida cada historia con clics (V1–V10) |
-| **V. Seguridad por defecto** | Público solo lectura; panel autenticado; secretos fuera del repo; protección en servidor | ✅ | ✅ RLS con `is_admin()` en todas las escrituras y registro desactivado. Tabla `admins` invisible. El guard de cliente es solo UX. `.env.local` está ignorado y hay `.env.example` sin valores. Clave secret nunca en el cliente. `noindex` en rutas privadas. Las escrituras anónimas se verifican con `curl` |
+| **V. Seguridad por defecto** | Público solo lectura; panel autenticado; secretos fuera del repo; protección en servidor | ✅ | ✅ RLS con `is_admin()` en todas las escrituras y registro desactivado. Tabla `admins` invisible. El guard de cliente es solo UX. El seed solo existe en local (R16): producción nunca recibe datos de prueba ni un `truncate`. `.env.local` está ignorado y hay `.env.example` sin valores. Clave secret nunca en el cliente. `noindex` en rutas privadas. Las escrituras anónimas se verifican con `curl` |
 | **Restricciones técnicas** | Stack React + TS + Vite + Tailwind + shadcn en Vercel; cada dependencia nueva justificada | ✅ | ✅ El stack se mantiene. Las 2 dependencias nuevas están justificadas en [research.md](./research.md#resumen-de-dependencias-nuevas). Los componentes shadcn nuevos usan `@base-ui/react`, que ya está instalado |
 | **Flujo de trabajo** | spec → plan → tareas; cierre con lint, build y verificación manual | ✅ | ✅ El cierre está definido en [quickstart.md](./quickstart.md#cierre-de-la-feature-constitución-flujo-de-trabajo) |
 
@@ -81,7 +84,7 @@ reescribir el Inicio. Se reaprovechan la paleta, el header, las variantes de ani
 ```text
 specs/001-otakuteca-catalog/
 ├── plan.md              # Este archivo
-├── research.md          # Phase 0: decisiones R1–R15
+├── research.md          # Phase 0: decisiones R1–R16
 ├── data-model.md        # Phase 1: esquema, RLS, RPC, valores derivados
 ├── quickstart.md        # Phase 1: setup + escenarios de validación V1–V10
 ├── contracts/
@@ -96,8 +99,10 @@ specs/001-otakuteca-catalog/
 
 ```text
 supabase/
-└── migrations/
-    └── 0001_init.sql            # enums, tablas, checks, índices, trigger, is_admin(), RLS, RPC
+├── config.toml                  # `pnpm dlx supabase init`; [auth] enable_signup = false
+├── migrations/
+│   └── 0001_init.sql            # enums, tablas, checks, índices, trigger, is_admin(), RLS, RPC
+└── seed.sql                     # SOLO local: catálogo de prueba (lo aplica `supabase start`/`db reset`)
 
 public/
 ├── cover-fallback.svg           # NUEVO: portada de reemplazo con la marca
@@ -109,19 +114,27 @@ src/
 ├── lib/
 │   ├── utils.ts                 # existente (cn)
 │   ├── supabase.ts              # cliente único (env vars)
-│   ├── types.ts                 # Work, Genre, WorkType, WorkStatus
-│   ├── catalog.ts               # derivados puros: etiquetas, orden, filtros, stats, ranking, ruleta
-│   ├── validation.ts            # validateWork() + traducción de errores de Postgres
-│   └── drafts.ts                # borradores del formulario en localStorage (FR-015)
+│   ├── types.ts                 # Work, Genre, WorkType, WorkStatus, WorkFormValues, WorkPayload
+│   ├── catalog/                 # derivados puros, un archivo por tema (barril index.ts):
+│   │                            #   labels, sort, progress, filters, ranking, stats, roulette
+│   ├── validation.ts            # validateWork() + toWorkPayload()
+│   ├── errors.ts                # isSessionError() + translateDbError()
+│   ├── drafts.ts                # borradores del formulario de obra en localStorage (FR-015)
+│   ├── motion.ts                # variantes full/reduced (salen de Home.tsx)
+│   ├── navigation.ts            # PUBLIC_NAV
+│   └── safeNext.ts              # valida ?next= de /login (evita open redirect)
 ├── hooks/
 │   ├── useCatalog.ts            # R-1: trae el catálogo al montar; loading/error
-│   └── useSession.ts            # sesión Supabase + is_admin
+│   ├── useWork.ts               # R-2: WorkPage + WorkEditPage
+│   ├── useGenres.ts             # R-3: WorkForm + GenresPage
+│   ├── useSession.ts            # sesión Supabase + is_admin
+│   └── useMotionSet.ts          # sale de Home.tsx
 ├── components/
 │   ├── ui/                      # shadcn: button (existe) + input, textarea, label, select,
 │   │                            #   checkbox, badge, alert-dialog, toggle-group
 │   ├── PublicLayout.tsx         # header + menú + footer (sale de Home.tsx actual)
 │   ├── DashboardLayout.tsx      # navegación del panel + cerrar sesión
-│   ├── RequireAdmin.tsx         # guard de /dashboard/*
+│   ├── RequireAdmin.tsx         # guard de /dashboard/* (decide solo al entrar)
 │   ├── WorkCard.tsx             # Animes, Mangas, Pendientes
 │   ├── WorkDetail.tsx           # página de detalle + resultado de Ruleta
 │   ├── CoverImage.tsx           # tarjeta, detalle, ranking, preview del form (fallback)
@@ -130,45 +143,52 @@ src/
 │   ├── StatusBadge.tsx          # tarjeta, detalle, listado del panel
 │   ├── EmptyState.tsx           # secciones, filtros, ranking, gráficos, ruleta
 │   ├── BarChart.tsx             # 3 gráficos de Estadísticas
-│   └── WorkForm.tsx             # alta + edición
+│   ├── WorkForm.tsx             # alta + edición
+│   ├── CatalogFilters.tsx       # 1 uso (CatalogPage): sale de dividir la página, no es abstracción
+│   └── Counter.tsx              # 1 uso (Inicio): existente, se mueve de Home.tsx
 └── pages/
-    ├── Home.tsx                 # REESCRIBIR: 3 contadores (FR-024)
+    ├── Home.tsx                 # REESCRIBIR: hero + 3 contadores (FR-024)
     ├── CatalogPage.tsx          # /animes y /mangas (prop type) + filtros
     ├── WorkPage.tsx             # /animes/:id, /mangas/:id
-    ├── RankingPage.tsx
+    ├── RankingPage.tsx          # numera por orden (1..n), no por ranking_position
     ├── StatsPage.tsx
     ├── PendingPage.tsx
     ├── RoulettePage.tsx
     ├── NotFoundPage.tsx
-    ├── LoginPage.tsx
-    └── dashboard/
+    ├── LoginPage.tsx            # fuera del barril público (lazy)
+    └── dashboard/               # fuera del barril público (lazy)
         ├── DashboardHome.tsx    # listado + eliminar
         ├── WorkEditPage.tsx     # /dashboard/obras/nueva y /dashboard/obras/:id
         ├── GenresPage.tsx
         └── RankingEditorPage.tsx
 
 .env.example                     # NUEVO: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
+.env.local                       # (ignorado) valores de Supabase LOCAL; producción solo en Vercel
 vercel.json                      # AMPLIAR: X-Robots-Tag noindex en /login y /dashboard/*
 ```
 
 **Structure Decision**: un solo proyecto (SPA en la raíz, como hoy) y la carpeta `supabase/`
-solo para la migración SQL versionada. No hay `backend/`: Supabase es el backend. Se respetan los
+para la configuración de la base local, la migración SQL versionada y el seed de desarrollo. No hay `backend/`: Supabase es el backend. Se respetan los
 alias existentes de `components.json` (`@/components`, `@/lib`, `@/hooks`). Las carpetas siguen
-el patrón actual (`pages/` con barrel `index.ts`, `components/ui/` para shadcn). Cada componente
-fuera de `pages/` tiene al menos dos usos reales, anotados arriba (Principio I).
+el patrón actual (`pages/` con barrel `index.ts`, `components/ui/` para shadcn). Cada componente o hook
+fuera de `pages/` tiene al menos dos usos reales, anotados arriba (Principio I), salvo los
+marcados con 1 uso, que salen de dividir código existente en archivos chicos (CLAUDE.md), no de
+crear una abstracción nueva.
 
 ## Orden de implementación sugerido (para `/speckit-tasks`)
 
-1. **Base**: migración SQL, setup de Supabase, env, cliente, tipos y router con layouts vacíos.
-2. **US1 + US2 + US3 (P1, vista pública)**: `useCatalog`, `catalog.ts`, WorkCard, WorkDetail,
-   CatalogPage con filtros, WorkPage, Inicio. Para el MVP mostrable se pueden cargar datos de
-   prueba desde el SQL Editor.
+1. **Base**: migración SQL, Supabase local con seed, env, cliente, tipos y router con layouts
+   vacíos.
+2. **US1 + US2 + US3 (P1, vista pública)**: `useCatalog`, `lib/catalog/`, WorkCard, WorkDetail,
+   CatalogPage con filtros, WorkPage, Inicio, validados con el seed local.
 3. **US4 + US5 (P1, acceso y alta)**: login, guard, panel, WorkForm (alta), géneros mínimos.
 4. **US6 (P2)**: edición, baja con confirmación, borradores por sesión vencida.
 5. **US7 (P2)**: favoritas y editor de Ranking (RPC) + RankingPage.
 6. **US8 (P2)**: StatsPage + BarChart.
 7. **US9 (P3)**: PendingPage + RoulettePage.
-8. **Cierre**: `vercel.json`, sitemap, fallback de portada, lint, build y quickstart V1–V10.
+8. **Cierre**: `vercel.json`, sitemap, lint, build y quickstart V1–V10 en local.
+9. **Paso a producción**: migración en el proyecto vacío, admin, variables en Vercel, deploy,
+   `curl` y carga del catálogo real a mano.
 
 ## Complexity Tracking
 

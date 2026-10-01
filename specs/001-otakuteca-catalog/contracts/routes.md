@@ -14,7 +14,7 @@ español de Argentina con voseo (FR-033).
 | `/animes/:id` | Detalle | — | Toda la info de la obra; "Obra no encontrada" si el id no existe o es manga | FR-018, US2 |
 | `/mangas` | Mangas | `estado`, `favoritos` | Grilla de mangas + filtros | FR-020, FR-023 |
 | `/mangas/:id` | Detalle | — | Ídem, para mangas | FR-018 |
-| `/ranking` | Ranking | — | Hasta 10 animes por `ranking_position`, numerados, con estrellas y link al detalle | FR-026, US7 |
+| `/ranking` | Ranking | — | Hasta 10 animes ordenados por `ranking_position` y numerados 1..n por orden (sin huecos aunque falte una posición), con estrellas y link al detalle | FR-026, US7 |
 | `/estadisticas` | Estadísticas | — | Gráficos: por estado, anime vs. manga, por género | FR-025, US8 |
 | `/pendientes` | Pendientes | — | Grilla de obras `pending` (anime y manga) | FR-027, US9 |
 | `/ruleta` | Ruleta | `tipo` (`anime` por defecto \| `manga`) | Selector Anime/Manga, botón "¡Girá la ruleta!", resultado con la info completa del detalle, "Otra opción" | FR-028, US9 |
@@ -49,7 +49,8 @@ link al detalle. Bloques opcionales vacíos se omiten (FR-020, FR-021, FR-030).
 
 Portada, título completo, tipo, todos los géneros, estrellas, estado, barra de progreso,
 temporadas/tomos (si hay), reseña breve, reseña ampliada, marca de favorita y, si aplica,
-"#N en mi Ranking". Sin controles de edición.
+la insignia "En mi top 10" con link a `/ranking` (sin número: el detalle carga una sola obra y no
+puede calcular el puesto visible, que depende de las demás; ver FR-026). Sin controles de edición.
 
 ### Estados vacíos (FR-029)
 
@@ -78,8 +79,10 @@ temporadas/tomos (si hay), reseña breve, reseña ampliada, marca de favorita y,
 |-----------|-----------|
 | Sin sesión al abrir cualquier `/dashboard/*` | `Navigate` a `/` (reemplaza historial) (FR-004, US4-1) |
 | Sesión válida pero usuario no admin | Igual que sin sesión |
-| Sesión cerrada (`signOut`) | Vuelve a `/` |
-| Sesión vence al guardar un formulario | Borrador conservado → `/login?next=<ruta>&motivo=sesion` (FR-015) |
+| Sesión cerrada con el botón "Cerrar sesión" del panel | Vuelve a `/` |
+| La sesión se pierde con el panel ya abierto (vence o se cierra en otra pestaña) | **No** redirige: la página sigue abierta y editable. El guard solo decide al entrar; una vez admitido, ignora la pérdida de sesión (FR-004, FR-015) |
+| Al guardar sin sesión válida (formulario de obra) | Borrador conservado → `/login?next=<ruta>&motivo=sesion` (FR-015) |
+| Al guardar sin sesión válida (Ranking, Géneros, eliminar desde el listado) | Mismo aviso y `/login?next=<ruta>&motivo=sesion`; los cambios sin guardar se pierden (FR-015) |
 
 ### `/login`
 
@@ -104,11 +107,18 @@ No existe opción de registro ni de recuperación de contraseña (FR-003).
 | Reseña ampliada | textarea | no | — |
 | Temporadas / Tomos | number ≥ 1 | no | "Tiene que ser 1 o más" |
 | Total episodios / capítulos | number ≥ 1 | no | "Tiene que ser 1 o más" |
-| Vistos / Leídos | number ≥ 0 | no | "No puede superar el total (Y)" |
+| Vistos / Leídos | number ≥ 0 | no (vacío = 0) | "No puede superar el total (Y)" |
 | Calificación | 10 pasos de media estrella + "Sin calificar" | no | — |
 | Favorita | checkbox | no (default no) | Al desmarcar: aviso "Sale del Ranking" si tenía posición |
 
-Al elegir "Completado" con total cargado, "Vistos/Leídos" se completa al total. Errores de la base
+Al elegir "Completado" con total cargado, "Vistos/Leídos" se completa al total.
+
+**Borrador**: el formulario (alta y edición) se guarda como borrador en cada cambio. Al abrirlo, si
+hay borrador (por sesión vencida, por haber salido sin guardar o por un cierre de pestaña), se
+recupera con el aviso "Recuperamos lo que estabas cargando" y el botón "Descartar borrador". Se
+borra al guardar con éxito. Si en un alta la obra se guardó pero sus géneros no, se pasa a la
+edición de esa obra con "Guardamos la obra, pero no sus géneros. Revisalos y guardá de nuevo."
+(ver [data-access.md](./data-access.md#escritura-solo-administrador-rls-exige-is_admin)). Errores de la base
 se traducen según [data-access.md](./data-access.md). Duplicado → "Ya cargaste «X» como anime." +
 botón "Editar esa obra" (FR-012).
 

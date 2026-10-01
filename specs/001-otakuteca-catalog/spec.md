@@ -52,6 +52,11 @@ Hoy el seguimiento de lo que el autor vio o leyó vive en su memoria o en aplica
 - Q: ¿Qué datos son obligatorios al cargar una obra? → A: Título, tipo, estado y URL de la portada. Géneros, reseñas, temporadas/tomos, totales, progreso y estrellas son opcionales.
 - Q: ¿Las estrellas admiten medias? → A: Sí, de 0,5 a 5 en pasos de media estrella.
 - Q: ¿La sección "Elegir anime" sortea solo animes? → A: No: se renombra a "Ruleta" y el visitante elige si sortear entre animes o mangas pendientes.
+- Q: Si un anime del Ranking se borra o deja de ser favorito, ¿qué pasa con los demás puestos? → A: Se corren solos: el Ranking público se numera 1..n según el orden de las posiciones guardadas, sin huecos visibles.
+- Q: Si la sesión se pierde con un formulario de `/dashboard` abierto (vence o se cierra en otra pestaña), ¿cuándo se manda al Administrador a `/login`? → A: Recién al tocar Guardar: mientras tanto puede seguir escribiendo; al guardar ve el aviso, va a `/login` y al volver recupera el formulario. Nunca se lo saca a la vista pública en medio de una edición.
+- Q: ¿Qué pantallas del panel conservan lo hecho si la sesión vence? → A: Solo el formulario de alta/edición de obra guarda un borrador. En Ranking y Géneros se muestra el mismo aviso y se va a `/login`, pero los cambios sin guardar se pierden.
+- Q: Si el Administrador sale del formulario de obra sin guardar (sin sesión vencida), ¿qué pasa al volver a abrirlo? → A: Se recupera el borrador con el aviso "Recuperamos lo que estabas cargando" y la opción "Descartar borrador"; vale también si cerró la pestaña o se colgó el navegador.
+- Q: ¿Dónde se prueban los datos de ejemplo y los escenarios de validación? → A: En local, con la base de datos también corriendo en la máquina del autor. Cuando todo pasa, se aplica el esquema a la base publicada, que arranca vacía, y el catálogo real se carga a mano. Los datos de prueba nunca tocan la base publicada.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -138,10 +143,10 @@ Desde `/dashboard`, el Administrador carga un anime o manga con todos sus datos:
 
 1. **Given** el Administrador en el panel, **When** carga "Frieren" como Anime con su portada, géneros Fantasía y Aventura, reseñas, episodios, 4,5 estrellas y estado "Viendo", **Then** la obra queda guardada y aparece en la sección Animes y en su detalle con esos datos.
 2. **Given** el formulario de alta, **When** el Administrador intenta guardar sin título, tipo, estado o URL de la portada, **Then** el sistema no guarda e indica qué dato falta.
-6. **Given** un anime que el Administrador todavía no vio, **When** lo carga como "Pendiente" con solo título, tipo, estado y portada, **Then** el alta se acepta y la tarjeta se ve completa, sin espacios rotos por los datos faltantes.
-3. **Given** que ya existe el anime "Naruto", **When** el Administrador intenta agregar otro anime llamado "Naruto" (incluso escrito "naruto" o con espacios extra), **Then** el sistema rechaza el alta con un error y ofrece ir a editar la obra existente.
-4. **Given** que ya existe el anime "Naruto", **When** el Administrador agrega el manga "Naruto", **Then** el alta se acepta, porque es otro formato.
-5. **Given** el formulario de alta, **When** el Administrador elige un estado, **Then** solo puede elegir uno de los cuatro estados (nunca dos a la vez).
+3. **Given** un anime que el Administrador todavía no vio, **When** lo carga como "Pendiente" con solo título, tipo, estado y portada, **Then** el alta se acepta y la tarjeta se ve completa, sin espacios rotos por los datos faltantes.
+4. **Given** que ya existe el anime "Naruto", **When** el Administrador intenta agregar otro anime llamado "Naruto" (incluso escrito "naruto" o con espacios extra), **Then** el sistema rechaza el alta con un error y ofrece ir a editar la obra existente.
+5. **Given** que ya existe el anime "Naruto", **When** el Administrador agrega el manga "Naruto", **Then** el alta se acepta, porque es otro formato.
+6. **Given** el formulario de alta, **When** el Administrador elige un estado, **Then** solo puede elegir uno de los cuatro estados (nunca dos a la vez).
 
 ---
 
@@ -175,7 +180,7 @@ El Administrador marca ciertos animes y mangas como favoritos para destacarlos, 
 
 1. **Given** una obra no favorita, **When** el Administrador la marca como favorita, **Then** en la vista pública aparece destacada y dentro del filtro "Favoritos".
 2. **Given** una obra favorita, **When** el Administrador la desmarca, **Then** deja de estar destacada, de aparecer en "Favoritos" y, si es anime, sale del Ranking.
-3. **Given** animes favoritos con posición asignada, **When** el visitante entra a Ranking, **Then** ve como máximo 10 animes, numerados según la posición asignada, cada uno con sus estrellas y acceso a su detalle.
+3. **Given** animes favoritos con posición asignada, **When** el visitante entra a Ranking, **Then** ve como máximo 10 animes, en el orden de la posición asignada y numerados del 1 en adelante, cada uno con sus estrellas y acceso a su detalle.
 4. **Given** un anime en el puesto 1 con 4 estrellas y otro en el puesto 2 con 5 estrellas, **When** el visitante entra a Ranking, **Then** el orden respeta las posiciones asignadas, no las estrellas.
 5. **Given** el Administrador asignando posiciones, **When** intenta poner dos animes en la misma posición o una posición fuera de 1–10, **Then** el sistema no lo permite (o reacomoda) y nunca quedan posiciones duplicadas.
 6. **Given** un anime favorito sin posición asignada, **When** el visitante entra a Ranking, **Then** ese anime no aparece en el Ranking, aunque sigue destacado como favorito en las grillas.
@@ -226,12 +231,14 @@ El visitante (o el propio autor) entra a Pendientes para ver todo lo que está e
 - **Títulos excesivamente largos (CL2)**: un título muy largo (p. ej. un isekai moderno de más de 100 caracteres) se recorta con puntos suspensivos o se ajusta en la tarjeta sin deformar la grilla; el título completo se ve en el detalle.
 - **Reseña breve larga**: en la tarjeta se recorta sin romper la grilla; completa se ve en el detalle.
 - **Portada rota**: si la URL de la portada (obligatoria) deja de cargar, se muestra una imagen de reemplazo con el estilo del sitio, sin romper la tarjeta ni el detalle.
-- **Sesión expirada durante una edición (CL3)**: si la sesión vence mientras el Administrador completa un formulario, al intentar guardar el sistema no pierde lo escrito: muestra un aviso claro, lo lleva a `/login` y, al volver, el formulario se recupera con los datos que había ingresado.
+- **Sesión expirada durante una edición (CL3)**: si la sesión vence (o se cierra en otra pestaña) mientras el Administrador completa un formulario, el formulario sigue abierto y editable; recién al intentar guardar el sistema no pierde lo escrito: muestra un aviso claro, lo lleva a `/login` y, al volver, el formulario se recupera con los datos que había ingresado. Esto aplica al formulario de obra; en el editor de Ranking y en Géneros el aviso y el paso por `/login` son iguales, pero lo que no se guardó se pierde.
+- **Formulario de obra abandonado**: si el Administrador sale del formulario de alta o edición sin guardar (o cierra la pestaña), al volver a abrir ese mismo formulario se recupera lo que había escrito, con el aviso "Recuperamos lo que estabas cargando" y la opción "Descartar borrador" para volver a empezar. Al guardar con éxito, el borrador se borra.
 - **Visitante que intenta modificar datos por fuera de la interfaz**: cualquier intento de crear, editar o eliminar obras sin sesión válida es rechazado por el sistema, aunque no se use la interfaz visual.
 - **Duplicados por diferencias menores de escritura**: "Naruto", "naruto" y " Naruto " se consideran el mismo título para la regla de unicidad dentro de un mismo tipo.
 - **Progreso inconsistente**: los episodios vistos (o capítulos leídos) no pueden superar el total cargado; si el total es desconocido (obra en emisión), la barra muestra la cantidad vista (p. ej. "12 episodios vistos") sin un porcentaje falso.
 - **Pasar a Completado**: al cambiar una obra a Completado con total conocido, el progreso se completa automáticamente al total.
 - **Más de 10 animes favoritos**: solo 10 pueden tener posición en el Ranking; el resto sigue siendo favorito en las grillas.
+- **Sale un anime del medio del Ranking**: si el #2 se elimina o deja de ser favorito, los de abajo suben un puesto en el Ranking público (el ex #3 se ve como #2) sin que el Administrador tenga que reacomodar nada.
 - **Datos opcionales vacíos**: si una obra no tiene reseña breve, reseña ampliada, géneros o totales, la tarjeta y el detalle omiten ese bloque de forma prolija (sin textos "undefined" ni huecos).
 - **Obra sin géneros**: se permite; en Estadísticas se cuenta bajo "Sin género".
 - **Muchos géneros en una tarjeta**: la tarjeta muestra los primeros y un indicador "+N"; el detalle muestra todos.
@@ -248,7 +255,7 @@ El visitante (o el propio autor) entra a Pendientes para ver todo lo que está e
 - **FR-001**: El sistema DEBE permitir la autenticación de un único usuario Administrador desde la dirección `/login` (RF1).
 - **FR-002**: `/login` NO DEBE estar enlazado desde ninguna página del sitio.
 - **FR-003**: El sistema NO DEBE ofrecer registro de cuentas ni ninguna forma de crear usuarios adicionales.
-- **FR-004**: Todo lo que sea del Administrador DEBE vivir bajo `/dashboard`; cualquier dirección bajo `/dashboard` DEBE requerir sesión válida y, sin ella, redirigir a la vista pública (CA3).
+- **FR-004**: Todo lo que sea del Administrador DEBE vivir bajo `/dashboard`; cualquier dirección bajo `/dashboard` DEBE requerir sesión válida y, si se abre sin ella, redirigir a la vista pública (CA3). Si la sesión se pierde con una página de `/dashboard` ya abierta, aplica FR-015 en lugar de la redirección a la vista pública.
 - **FR-005**: Toda operación que modifique el catálogo DEBE ser rechazada por el sistema si no proviene de una sesión válida de Administrador, independientemente de lo que muestre la interfaz (RN1).
 - **FR-006**: El Administrador DEBE poder cerrar sesión.
 - **FR-007**: Ante credenciales incorrectas, el sistema DEBE mostrar un mensaje de error genérico que no indique qué dato falló.
@@ -256,18 +263,18 @@ El visitante (o el propio autor) entra a Pendientes para ver todo lo que está e
 **Gestión de obras (panel de control)**
 
 - **FR-008**: El Administrador DEBE poder crear, ver, editar y eliminar obras desde `/dashboard` (RF2).
-- **FR-009**: Cada obra DEBE tener: título (obligatorio), tipo (obligatorio: Anime o Manga), uno o más géneros de la lista de géneros (opcional), URL de la portada (obligatoria), reseña breve (opcional), reseña ampliada (opcional), para anime: temporadas (informativo), total de episodios y episodios vistos (opcionales); para manga: tomos (informativo), total de capítulos y capítulos leídos (opcionales); estado (obligatorio: exactamente uno entre Pendiente, Consumiendo, Completado, Abandonado), calificación en estrellas (opcional, de 0,5 a 5 estrellas en pasos de media estrella) e indicador de favorita (sí/no, por defecto no) (RF3, RF4).
+- **FR-009**: Cada obra DEBE tener: título (obligatorio), tipo (obligatorio: Anime o Manga), uno o más géneros de la lista de géneros (opcional), URL de la portada (obligatoria), reseña breve (opcional), reseña ampliada (opcional), para anime: temporadas (informativo), total de episodios y episodios vistos (opcionales; si no se cargan los vistos, cuentan como 0); para manga: tomos (informativo), total de capítulos y capítulos leídos (opcionales; si no se cargan los leídos, cuentan como 0); estado (obligatorio: exactamente uno entre Pendiente, Consumiendo, Completado, Abandonado), calificación en estrellas (opcional, de 0,5 a 5 estrellas en pasos de media estrella) e indicador de favorita (sí/no, por defecto no) (RF3, RF4).
 - **FR-010**: Una obra DEBE tener un único estado a la vez; al cambiarlo, el estado anterior se reemplaza (RN2).
 - **FR-011**: El sistema DEBE impedir que existan dos obras con el mismo título y el mismo tipo, comparando títulos sin distinguir mayúsculas/minúsculas ni espacios al inicio o al final (RN3).
 - **FR-012**: Al detectar un duplicado, el sistema DEBE mostrar un error claro y ofrecer ir a editar la obra existente.
 - **FR-013**: El sistema DEBE validar los datos antes de guardar e indicar qué campo falta o es inválido (incluido un progreso mayor que el total).
 - **FR-014**: El sistema DEBE pedir confirmación antes de eliminar una obra.
-- **FR-015**: Si la sesión vence mientras el Administrador completa un formulario, el sistema DEBE conservar los datos ingresados y restaurarlos después de que vuelva a iniciar sesión, mostrando un aviso claro de lo ocurrido (CL3).
+- **FR-015**: Si la sesión vence (o se cierra en otra pestaña) mientras el Administrador completa el formulario de alta o edición de una obra, el sistema DEBE dejarlo seguir editando y, al intentar guardar, llevarlo a `/login`, conservar los datos ingresados y restaurarlos después de que vuelva a iniciar sesión, mostrando un aviso claro de lo ocurrido (CL3). El mismo borrador se recupera si el Administrador sale del formulario sin guardar, con la opción de descartarlo.
 - **FR-016**: El Administrador DEBE poder asignar manualmente a cada anime favorito una posición única de Ranking entre 1 y 10, cambiarla o quitarla; al dejar de ser favorito, el anime pierde su posición.
+- **FR-016b**: El Administrador DEBE poder crear, renombrar y eliminar géneros de la lista desde `/dashboard`; los nombres de género son únicos sin distinguir mayúsculas. Eliminar un género en uso DEBE pedir confirmación indicando cuántas obras lo tienen, y lo quita de esas obras.
 
 **Vista pública — estructura**
 
-- **FR-016b**: El Administrador DEBE poder crear, renombrar y eliminar géneros de la lista desde `/dashboard`; los nombres de género son únicos sin distinguir mayúsculas. Eliminar un género en uso DEBE pedir confirmación indicando cuántas obras lo tienen, y lo quita de esas obras.
 - **FR-017**: El sitio público DEBE ser multipágina con las secciones Inicio, Animes, Mangas, Ranking, Estadísticas, Pendientes y Ruleta, accesibles desde un menú presente en todas las páginas públicas, sin iniciar sesión (RF5, HU5, CA1).
 - **FR-018**: Cada obra DEBE tener una página de detalle pública con dirección propia que muestre toda su información.
 - **FR-019**: Ninguna página pública DEBE mostrar controles para agregar, editar ni eliminar obras, ni enlaces a `/login` o `/dashboard` (RN1).
@@ -276,11 +283,11 @@ El visitante (o el propio autor) entra a Pendientes para ver todo lo que está e
 
 - **FR-020**: Animes y Mangas DEBEN mostrar en grilla todas las obras de su tipo; cada tarjeta DEBE mostrar portada, título, géneros, reseña breve, calificación en estrellas (o "Sin calificar"), estado y barra de progreso, y las favoritas DEBEN destacarse visualmente.
 - **FR-021**: Anime y manga DEBEN mostrar una barra de progreso (en tarjeta y detalle): episodios vistos / total de episodios para anime, capítulos leídos / total de capítulos para manga, con el texto "X / Y" junto a la barra. Temporadas y tomos se muestran solo como dato informativo en el detalle.
-- **FR-022**: El estado "Consumiendo" DEBE mostrarse al visitante como "Viendo" para anime y "Leyendo" para manga.
+- **FR-022**: El estado "Consumiendo" DEBE mostrarse al visitante como "Viendo" para anime y "Leyendo" para manga. Donde se mezclan los dos tipos (gráficos de Estadísticas), se muestra como "En curso".
 - **FR-023**: Animes y Mangas DEBEN permitir filtrar por Estado y por Favoritos, combinar esos filtros y quitarlos en un solo paso (RF6; el Tipo lo da la sección).
 - **FR-024**: Inicio DEBE mostrar: cantidad de animes vistos (animes en estado Completado), cantidad de favoritos (anime + manga) y cantidad de mangas leídos (mangas en estado Completado).
 - **FR-025**: Estadísticas DEBE mostrar varios gráficos del catálogo — como mínimo, distribución por estado, comparación anime vs. manga y una sección por género con la cantidad de obras de cada uno (una obra suma en cada uno de sus géneros, por lo que la suma puede superar el total de obras).
-- **FR-026**: Ranking DEBE mostrar los animes favoritos con posición asignada, ordenados por esa posición (no por estrellas), numerados, con un máximo de 10 y mostrando las estrellas de cada uno.
+- **FR-026**: Ranking DEBE mostrar los animes favoritos con posición asignada, ordenados por esa posición (no por estrellas), numerados correlativamente del 1 en adelante (sin huecos aunque falte alguna posición intermedia), con un máximo de 10 y mostrando las estrellas de cada uno.
 - **FR-027**: Pendientes DEBE mostrar todas las obras (anime y manga) en estado Pendiente.
 - **FR-028**: La Ruleta DEBE permitir elegir entre Anime y Manga y mostrar una obra en estado Pendiente de ese tipo elegida al azar, con toda su información, y permitir volver a sortear.
 - **FR-029**: Cuando no hay obras para mostrar en una sección, gráfico o filtro, el sistema DEBE mostrar un estado vacío amigable (CL1).
@@ -307,7 +314,7 @@ El visitante (o el propio autor) entra a Pendientes para ver todo lo que está e
 - **SC-006**: El 100 % de los intentos de acceder a `/dashboard` o de modificar obras sin sesión válida son bloqueados, y ninguna página pública contiene enlaces a `/login`.
 - **SC-007**: Ninguna tarjeta rompe la alineación de la grilla, incluso con títulos de 150 caracteres o portadas rotas, tanto en celular como en escritorio.
 - **SC-008**: Los tres números del Inicio y todos los gráficos de Estadísticas coinciden en el 100 % de los casos con un conteo manual del catálogo.
-- **SC-009**: Ante una sesión vencida durante una edición, el Administrador no pierde ningún dato que haya escrito en el formulario.
+- **SC-009**: Ante una sesión vencida durante el alta o la edición de una obra, el Administrador no pierde ningún dato que haya escrito en el formulario.
 
 ## Assumptions
 
@@ -320,4 +327,5 @@ El visitante (o el propio autor) entra a Pendientes para ver todo lo que está e
 - **Credenciales del Administrador**: se configuran fuera del sitio (no hay pantalla de alta de usuario ni de recuperación de contraseña en v1).
 - **Visibilidad**: todas las obras cargadas son públicas; no existen obras privadas u ocultas en v1.
 - **Volumen**: el catálogo de v1 no supera las 200 obras.
+- **Entorno de pruebas**: los datos de ejemplo y las validaciones (incluidas la base vacía y el catálogo de 200 obras) se hacen en un entorno local, con la base de datos en la máquina del autor. La base publicada arranca vacía, solo recibe el catálogo real cargado a mano y nunca se "limpia" de datos de prueba.
 - **Fuera de alcance**: múltiples usuarios o listas; integración con MyAnimeList, AniList, Kitsu u otras fuentes externas (toda la carga es manual); subida de imágenes; comentarios, likes o mensajes de visitantes; paginación o scroll infinito; búsqueda por texto; Ranking de mangas.
