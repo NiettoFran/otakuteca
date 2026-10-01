@@ -1,3 +1,5 @@
+import { Home } from '@/pages'
+
 export const OtakutecaApp = () => {
-  return <div>OtakutecaApp</div>
+  return <Home />
 }
