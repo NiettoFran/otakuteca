@@ -1,1 +1,8 @@
+export { CatalogPage } from './CatalogPage'
 export { Home } from './Home'
+export { NotFoundPage } from './NotFoundPage'
+export { PendingPage } from './PendingPage'
+export { RankingPage } from './RankingPage'
+export { RoulettePage } from './RoulettePage'
+export { StatsPage } from './StatsPage'
+export { WorkPage } from './WorkPage'
