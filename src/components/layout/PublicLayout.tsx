@@ -7,7 +7,7 @@ import {
   useSpring,
 } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
 
 import { useMotionSet } from '@/hooks'
@@ -25,6 +25,15 @@ export const PublicLayout = () => {
   const [compact, setCompact] = useState(false)
   const [menuPath, setMenuPath] = useState<string | null>(null)
   const menuOpen = menuPath === pathname
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const close = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuPath(null)
+    }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [menuOpen])
 
   const { scrollY, scrollYProgress } = useScroll()
   useMotionValueEvent(scrollY, 'change', (y) => setCompact(y > 40))
@@ -52,6 +61,21 @@ export const PublicLayout = () => {
             animate={compact || menuOpen ? 'compact' : 'top'}
             className='absolute inset-0 origin-top border-b border-ciruela bg-noche/80 backdrop-blur-md'
           />
+          {menuOpen && (
+            <button
+              type='button'
+              aria-hidden
+              tabIndex={-1}
+              onClick={() => setMenuPath(null)}
+              className='absolute inset-x-0 top-full h-dvh cursor-default lg:hidden'
+            />
+          )}
+          {menuOpen && (
+            <div
+              aria-hidden
+              className='absolute inset-0 border-b border-ciruela bg-noche/95 backdrop-blur-md lg:hidden'
+            />
+          )}
           <motion.div
             variants={m.headerRow}
             initial={false}
@@ -104,8 +128,10 @@ export const PublicLayout = () => {
           </motion.div>
 
           {menuOpen && (
-            <nav
+            <motion.nav
               id='menu-movil'
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
               aria-label='Principal'
               className='relative mx-auto flex max-w-6xl flex-col gap-1 px-4 pb-4 lg:hidden'
             >
@@ -124,7 +150,7 @@ export const PublicLayout = () => {
                   {label}
                 </NavLink>
               ))}
-            </nav>
+            </motion.nav>
           )}
         </motion.header>
 
