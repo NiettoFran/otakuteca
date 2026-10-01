@@ -1,0 +1,119 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Paleta oficial de Otakuteca → utilidades (bg-noche, text-sakura, …) y variables (--color-*).
+   `static` emite siempre todas las variables, aunque la utilidad no se use. */
+@theme static {
+  --color-noche: #14122b; /* Fondo principal */
+  --color-abismo: #1a0b2e; /* Pupila, fondos más profundos */
+  --color-ciruela: #2a0f4a; /* Borde del iris */
+  --color-violeta: #3b1d6e; /* Parte de arriba del iris */
+  --color-uva: #4a1c6e; /* Centro de la pupila */
+  --color-magenta: #b0307a; /* Medio del iris */
+  --color-sakura: #ff6b9a; /* Acento: "teca", botones, links */
+  --color-sakura-claro: #ffb3cc; /* Hover y detalles suaves */
+  --color-cian: #5ee7ff; /* Anillo, destacados secundarios */
+  --color-lavanda: #9b8cff; /* Anillo y subtítulos */
+  --color-dorado: #ffd66b; /* Estrella, puntajes y favoritos */
+  --color-niebla: #f5f3ff; /* Texto principal sobre fondo oscuro */
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Geist Variable', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Tokens semánticos de shadcn mapeados a la paleta. La app es solo dark (<html class="dark">). */
+:root {
+  color-scheme: dark;
+
+  --background: var(--color-noche);
+  --foreground: var(--color-niebla);
+  --card: color-mix(in oklab, var(--color-niebla) 4%, var(--color-noche));
+  --card-foreground: var(--color-niebla);
+  --popover: color-mix(in oklab, var(--color-niebla) 6%, var(--color-noche));
+  --popover-foreground: var(--color-niebla);
+  --primary: var(--color-sakura);
+  --primary-foreground: var(--color-noche);
+  --secondary: var(--color-ciruela);
+  --secondary-foreground: var(--color-niebla);
+  --muted: color-mix(in oklab, var(--color-niebla) 8%, var(--color-noche));
+  --muted-foreground: color-mix(in oklab, var(--color-niebla) 65%, var(--color-noche));
+  --accent: var(--color-ciruela);
+  --accent-foreground: var(--color-sakura-claro);
+  --destructive: oklch(0.704 0.191 22.216); /* La paleta no tiene rojo: se mantiene el de shadcn */
+  --border: color-mix(in oklab, var(--color-niebla) 10%, transparent);
+  --input: color-mix(in oklab, var(--color-niebla) 15%, transparent);
+  --ring: var(--color-sakura);
+  --chart-1: var(--color-sakura);
+  --chart-2: var(--color-cian);
+  --chart-3: var(--color-lavanda);
+  --chart-4: var(--color-dorado);
+  --chart-5: var(--color-magenta);
+  --radius: 0.625rem;
+  --sidebar: var(--color-abismo);
+  --sidebar-foreground: var(--color-niebla);
+  --sidebar-primary: var(--color-sakura);
+  --sidebar-primary-foreground: var(--color-noche);
+  --sidebar-accent: var(--color-ciruela);
+  --sidebar-accent-foreground: var(--color-sakura-claro);
+  --sidebar-border: color-mix(in oklab, var(--color-niebla) 10%, transparent);
+  --sidebar-ring: var(--color-sakura);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  ::selection {
+    @apply bg-sakura/30 text-niebla;
+  }
+}
