@@ -1,12 +1,10 @@
-import { motion } from 'framer-motion'
 import { Library } from 'lucide-react'
 
-import { EmptyState, PendingCard } from '@/components'
-import { useCatalog, useMotionSet } from '@/hooks'
+import { CardGrid, EmptyState, PendingCard } from '@/components'
+import { useCatalog } from '@/hooks'
 import { sortWorks } from '@/lib'
 
 export const PendingPage = () => {
-  const m = useMotionSet()
   const { works, loading, error } = useCatalog()
   const pending = sortWorks(works.filter((w) => w.status === 'pending'))
 
@@ -35,21 +33,11 @@ export const PendingPage = () => {
         ) : pending.length === 0 ? (
           <EmptyState icon={Library} message='Aún no hay obras en esta categoría' />
         ) : (
-          <motion.div
-            variants={m.grid}
-            initial='hidden'
-            animate='visible'
-            className='mx-auto flex max-w-6xl flex-wrap justify-center gap-4 sm:gap-6'
-          >
+          <CardGrid>
             {pending.map((work) => (
-              <div
-                key={work.id}
-                className='w-[calc((100%-1rem)/2)] sm:w-[calc((100%-3rem)/3)] lg:w-[calc((100%-4.5rem)/4)]'
-              >
-                <PendingCard work={work} />
-              </div>
+              <PendingCard key={work.id} work={work} />
             ))}
-          </motion.div>
+          </CardGrid>
         )}
       </div>
     </section>

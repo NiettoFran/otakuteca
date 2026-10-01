@@ -1,4 +1,5 @@
 export { BarChart } from './BarChart'
+export { CardGrid } from './CardGrid'
 export { ConfirmDialog } from './ConfirmDialog'
 export { Counter } from './Counter'
 export { EmptyState } from './EmptyState'
