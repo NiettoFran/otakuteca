@@ -1,13 +1,13 @@
-import { LogOut } from 'lucide-react'
+import { ExternalLink, Library, LogOut, Tags, Trophy } from 'lucide-react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 
 import { Button, TooltipProvider } from '@/components/ui'
 import { cn, supabase } from '@/lib'
 
 const DASHBOARD_NAV = [
-  { label: 'Obras', to: '/dashboard', end: true },
-  { label: 'Géneros', to: '/dashboard/generos', end: false },
-  { label: 'Ranking', to: '/dashboard/ranking', end: false },
+  { label: 'Obras', to: '/dashboard', end: true, icon: Library },
+  { label: 'Géneros', to: '/dashboard/generos', end: false, icon: Tags },
+  { label: 'Ranking', to: '/dashboard/ranking', end: false, icon: Trophy },
 ]
 
 export const DashboardLayout = () => {
@@ -26,24 +26,31 @@ export const DashboardLayout = () => {
             <span className='mr-3 font-heading font-extrabold'>
               Otaku<span className='text-sakura'>teca</span>
             </span>
-            {DASHBOARD_NAV.map(({ label, to, end }) => (
+            {DASHBOARD_NAV.map(({ label, to, end, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
                     isActive ? 'bg-sakura text-noche' : 'text-lavanda hover:text-sakura-claro'
                   )
                 }
               >
+                <Icon className='size-4' />
                 {label}
               </NavLink>
             ))}
           </nav>
           <div className='flex items-center gap-3'>
-            <Link to='/' className='text-sm text-lavanda hover:text-sakura-claro'>
+            <Link
+              to='/'
+              target='_blank'
+              rel='noopener noreferrer'
+              className='inline-flex items-center gap-1.5 text-sm text-lavanda hover:text-sakura-claro'
+            >
+              <ExternalLink className='size-4' />
               Ver el sitio
             </Link>
             <Button variant='outline' size='sm' onClick={signOut}>
