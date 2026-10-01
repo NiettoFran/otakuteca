@@ -1,8 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { Trash2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
-import { ConfirmDialog, WorkForm } from '@/components'
+import { ConfirmDialog, PageHeader, TooltipHint, WorkForm } from '@/components'
 import { Button } from '@/components/ui'
 import { worksPageKey } from '@/hooks'
 import {
@@ -192,17 +193,26 @@ export const WorkEditor = ({ work }: { work: Work | null }) => {
   }
 
   return (
-    <section className='max-w-2xl'>
+    <section className='mx-auto max-w-6xl'>
       <title>{work ? `Editar ${work.title} · Otakuteca` : 'Agregar obra · Otakuteca'}</title>
-      <div className='mb-6 flex flex-wrap items-center justify-between gap-3'>
-        <h1 className='font-heading text-3xl font-extrabold'>
-          {work ? 'Editar obra' : 'Agregar obra'}
-        </h1>
-        {work && (
-          <Button variant='destructive' size='sm' onClick={() => setConfirmDelete(true)}>
-            Eliminar
-          </Button>
-        )}
+      <div className='mb-8'>
+        <PageHeader
+          title={work ? 'Editar obra' : 'Agregar obra'}
+          description={
+            work
+              ? `Modificá los datos de «${work.title}». Los cambios se ven en el sitio apenas guardás.`
+              : 'Cargá un anime o manga nuevo a tu catálogo. Necesitás al menos el título, el estado y la URL de la portada.'
+          }
+        >
+          {work && (
+            <TooltipHint label={`Eliminar «${work.title}» del catálogo`}>
+              <Button variant='destructive' size='sm' onClick={() => setConfirmDelete(true)}>
+                <Trash2 />
+                Eliminar
+              </Button>
+            </TooltipHint>
+          )}
+        </PageHeader>
       </div>
       <WorkForm
         initialValues={work ? toFormValues(work) : EMPTY_VALUES}
