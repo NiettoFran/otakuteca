@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { Library, Plus, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
@@ -8,16 +8,47 @@ import {
   EmptyState,
   PaginationBar,
   PaginationSummary,
+  WorksEmptyState,
+  WorksFilters,
   WorksTable,
 } from '@/components'
-import { buttonVariants } from '@/components/ui'
-import { useWorksPage, worksPageKey } from '@/hooks'
-import { cn, DEFAULT_PAGE_SIZE, isSessionError, supabase, type Work } from '@/lib'
+import { Button, buttonVariants } from '@/components/ui'
+import { useDebouncedValue, useWorksPage, worksPageKey } from '@/hooks'
+import {
+  cn,
+  DEFAULT_PAGE_SIZE,
+  EMPTY_DASHBOARD_FILTERS,
+  hasDashboardFilters,
+  isSessionError,
+  supabase,
+  type DashboardFilters,
+  type Work,
+} from '@/lib'
 
 export const DashboardHome = () => {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
-  const { data, isPending: loading, isError: error } = useWorksPage(page, pageSize)
+  const [filters, setFilters] = useState<DashboardFilters>(EMPTY_DASHBOARD_FILTERS)
+  const debouncedSearch = useDebouncedValue(filters.search)
+  // Con los filtros aplicados (la búsqueda va con retraso), no con lo que se está tipeando.
+  const appliedFilters = { ...filters, search: debouncedSearch }
+  const filtered = hasDashboardFilters(appliedFilters)
+  const {
+    data,
+    isPending: loading,
+    isError: error,
+    isPlaceholderData: refreshing,
+  } = useWorksPage(page, pageSize, appliedFilters)
+
+  const clearFilters = () => {
+    setFilters(EMPTY_DASHBOARD_FILTERS)
+    setPage(1)
+  }
+
+  const changeFilters = (changes: Partial<DashboardFilters>) => {
+    setFilters((current) => ({ ...current, ...changes }))
+    setPage(1)
+  }
   const works = data?.works ?? []
   const total = data?.total ?? 0
   const queryClient = useQueryClient()
@@ -54,19 +85,49 @@ export const DashboardHome = () => {
           No pudimos eliminar la obra. Revisá tu conexión y probá de nuevo.
         </p>
       )}
-      <div className='mt-6'>
+      <div className='mt-6 space-y-4'>
+        <WorksFilters filters={filters} onChange={changeFilters} onClear={clearFilters} />
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
           <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+        ) : total === 0 && filtered ? (
+          <WorksEmptyState
+            icon={SearchX}
+            title='No encontramos nada'
+            action={
+              <Button onClick={clearFilters} className='rounded-full'>
+                Limpiar filtros
+              </Button>
+            }
+          >
+            {debouncedSearch.trim() ? (
+              <>
+                No hay obras que coincidan con «
+                <span className='break-all text-niebla'>{debouncedSearch.trim()}</span>» y los
+                filtros elegidos.
+              </>
+            ) : (
+              'No hay obras que coincidan con los filtros elegidos.'
+            )}
+          </WorksEmptyState>
         ) : total === 0 ? (
-          <EmptyState message='Todavía no cargaste ninguna obra. ¡Empezá con la primera!'>
-            <Link to='/dashboard/obras/nueva' className={cn(buttonVariants(), 'rounded-full')}>
-              Agregar obra
-            </Link>
-          </EmptyState>
+          <WorksEmptyState
+            icon={Library}
+            title='Todavía no cargaste ninguna obra'
+            action={
+              <Link to='/dashboard/obras/nueva' className={cn(buttonVariants(), 'rounded-full')}>
+                Agregar obra
+              </Link>
+            }
+          >
+            ¡Empezá con la primera!
+          </WorksEmptyState>
         ) : (
-          <div className='space-y-3'>
+          <div
+            className={cn('space-y-3 transition-opacity', refreshing && 'opacity-60')}
+            aria-busy={refreshing}
+          >
             <PaginationBar
               page={page}
               pageSize={pageSize}
