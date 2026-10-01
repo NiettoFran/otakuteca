@@ -74,17 +74,18 @@ export const PublicLayout = () => {
             </motion.div>
 
             <nav aria-label='Principal' className='hidden items-center gap-1 lg:flex'>
-              {PUBLIC_NAV.map(({ label, to }) => (
+              {PUBLIC_NAV.map(({ label, to, icon: Icon }) => (
                 <NavLink
                   key={to}
                   to={to}
                   className={cn(
-                    'rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-cian focus-visible:outline-none',
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-cian focus-visible:outline-none',
                     isSectionActive(to, pathname)
                       ? 'bg-sakura text-noche'
                       : 'text-lavanda hover:text-sakura-claro'
                   )}
                 >
+                  <Icon className='size-4' aria-hidden />
                   {label}
                 </NavLink>
               ))}
@@ -108,17 +109,18 @@ export const PublicLayout = () => {
               aria-label='Principal'
               className='relative mx-auto flex max-w-6xl flex-col gap-1 px-4 pb-4 lg:hidden'
             >
-              {PUBLIC_NAV.map(({ label, to }) => (
+              {PUBLIC_NAV.map(({ label, to, icon: Icon }) => (
                 <NavLink
                   key={to}
                   to={to}
                   className={cn(
-                    'rounded-xl px-4 py-2.5 text-base font-medium transition-colors',
+                    'flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-base font-medium transition-colors',
                     isSectionActive(to, pathname)
                       ? 'bg-sakura text-noche'
                       : 'text-lavanda hover:bg-ciruela/60 hover:text-sakura-claro'
                   )}
                 >
+                  <Icon className='size-4' aria-hidden />
                   {label}
                 </NavLink>
               ))}
