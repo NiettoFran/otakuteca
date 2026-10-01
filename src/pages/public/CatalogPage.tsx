@@ -1,13 +1,13 @@
-import { motion } from 'framer-motion'
 import { Library } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 
-import { CatalogFilters, EmptyState, WorkCard } from '@/components'
+import { CardGrid, CatalogFilters, EmptyState, WorkCard } from '@/components'
 import { buttonVariants } from '@/components/ui'
-import { useCatalog, useMotionSet } from '@/hooks'
+import { useCatalog } from '@/hooks'
 import {
   applyFilters,
   cn,
+  countByStatus,
   hasActiveFilters,
   parseFilters,
   sortWorks,
@@ -17,8 +17,12 @@ import {
 
 const TITLE: Record<WorkType, string> = { anime: 'Animes', manga: 'Mangas' }
 
+const DESCRIPTION: Record<WorkType, string> = {
+  anime: 'Todos los animes que vi, estoy viendo o tengo en la mira.',
+  manga: 'Todos los mangas que leí, estoy leyendo o tengo en la mira.',
+}
+
 export const CatalogPage = ({ type }: { type: WorkType }) => {
-  const m = useMotionSet()
   const [params] = useSearchParams()
   const { works, loading, error } = useCatalog()
   const filters = parseFilters(params)
@@ -28,11 +32,14 @@ export const CatalogPage = ({ type }: { type: WorkType }) => {
   return (
     <section className='py-10'>
       <title>{`${TITLE[type]} · Otakuteca`}</title>
-      <h1 className='font-heading text-3xl font-extrabold tracking-tight sm:text-4xl'>
-        {TITLE[type]}
-      </h1>
-      <div className='mt-6'>
-        <CatalogFilters type={type} />
+      <header className='mx-auto max-w-2xl text-center'>
+        <h1 className='font-heading text-3xl font-extrabold tracking-tight sm:text-4xl'>
+          {TITLE[type]}
+        </h1>
+        <p className='mt-3 text-pretty text-lavanda'>{DESCRIPTION[type]}</p>
+      </header>
+      <div className='mt-8'>
+        <CatalogFilters type={type} counts={countByStatus(ofType)} />
       </div>
       <div className='mt-8'>
         {loading ? (
@@ -51,17 +58,11 @@ export const CatalogPage = ({ type }: { type: WorkType }) => {
             )}
           </EmptyState>
         ) : (
-          <motion.div
-            key={`${type}-${params.toString()}`}
-            variants={m.grid}
-            initial='hidden'
-            animate='visible'
-            className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-          >
+          <CardGrid key={`${type}-${params.toString()}`}>
             {visible.map((work) => (
               <WorkCard key={work.id} work={work} />
             ))}
-          </motion.div>
+          </CardGrid>
         )}
       </div>
     </section>

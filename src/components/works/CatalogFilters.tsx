@@ -9,6 +9,7 @@ import {
   STATUS_ORDER,
   STATUS_SLUG,
   TYPE_PATH,
+  type WorkStatus,
   type WorkType,
 } from '@/lib'
 
@@ -20,7 +21,9 @@ const chip = (active: boolean) =>
       : 'border-ciruela bg-abismo text-lavanda hover:text-sakura-claro'
   )
 
-export const CatalogFilters = ({ type }: { type: WorkType }) => {
+type Props = { type: WorkType; counts: { status: WorkStatus; value: number }[] }
+
+export const CatalogFilters = ({ type, counts }: Props) => {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const filters = parseFilters(params)
@@ -39,7 +42,11 @@ export const CatalogFilters = ({ type }: { type: WorkType }) => {
   }
 
   return (
-    <div className='flex flex-wrap items-center gap-2' role='group' aria-label='Filtros'>
+    <div
+      className='flex flex-wrap items-center justify-center gap-2'
+      role='group'
+      aria-label='Filtros'
+    >
       {STATUS_ORDER.map((status) => {
         const active = filters.status === status
         return (
@@ -51,6 +58,9 @@ export const CatalogFilters = ({ type }: { type: WorkType }) => {
             className={chip(active)}
           >
             {getStatusLabel(status, type)}
+            <span className={cn('ml-2 text-xs', active ? 'text-noche/70' : 'text-niebla/50')}>
+              {counts.find((c) => c.status === status)?.value ?? 0}
+            </span>
           </button>
         )
       })}
