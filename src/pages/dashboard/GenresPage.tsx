@@ -1,21 +1,32 @@
-import { Check, Pencil, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Search, SearchX, Tags, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 
-import { ConfirmDialog, EmptyState } from '@/components'
+import { ConfirmDialog, EmptyState, PanelEmptyState } from '@/components'
 import { Button, Input } from '@/components/ui'
 import { useGenres } from '@/hooks'
 import { isSessionError, supabase, translateDbError, type Genre } from '@/lib'
 
 const LOGIN_REDIRECT = '/login?next=/dashboard/generos&motivo=sesion'
 
+// Compara sin tildes ni mayúsculas: «accion» encuentra «Acción».
+const normalize = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+
 export const GenresPage = () => {
   const { genres, loading, error, reload } = useGenres()
   const navigate = useNavigate()
   const [name, setName] = useState('')
+  const [search, setSearch] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [editing, setEditing] = useState<{ id: number; name: string } | null>(null)
   const [toDelete, setToDelete] = useState<{ genre: Genre; count: number } | null>(null)
+
+  const term = normalize(search.trim())
+  const visible = term ? genres.filter((g) => normalize(g.name).includes(term)) : genres
 
   const fail = (err: Parameters<typeof translateDbError>[0]) => {
     if (isSessionError(err)) return navigate(LOGIN_REDIRECT, { replace: true })
@@ -82,16 +93,42 @@ export const GenresPage = () => {
           {message}
         </p>
       )}
-      <div className='mt-6'>
+      <div className='relative mt-4'>
+        <Search className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-lavanda' />
+        <Input
+          type='search'
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder='Buscá un género…'
+          aria-label='Buscar géneros'
+          className='h-9 pl-9'
+        />
+      </div>
+      <div className='mt-4'>
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
           <EmptyState message='No pudimos cargar los géneros. Probá recargar la página' />
         ) : genres.length === 0 ? (
-          <EmptyState message='Todavía no hay géneros. Creá el primero.' />
+          <PanelEmptyState icon={Tags} title='Todavía no hay géneros'>
+            Creá el primero con el campo de arriba.
+          </PanelEmptyState>
+        ) : visible.length === 0 ? (
+          <PanelEmptyState
+            icon={SearchX}
+            title='No encontramos nada'
+            action={
+              <Button onClick={() => setSearch('')} className='rounded-full'>
+                Limpiar búsqueda
+              </Button>
+            }
+          >
+            No hay géneros que coincidan con «
+            <span className='break-all text-niebla'>{search.trim()}</span>».
+          </PanelEmptyState>
         ) : (
           <ul className='divide-y divide-ciruela rounded-2xl border border-ciruela bg-abismo'>
-            {genres.map((genre) => (
+            {visible.map((genre) => (
               <li key={genre.id} className='flex items-center gap-2 p-3'>
                 {editing?.id === genre.id ? (
                   <>
