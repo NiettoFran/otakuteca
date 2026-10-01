@@ -1,5 +1,6 @@
 export { CatalogFilters } from './CatalogFilters'
 export { CoverImage } from './CoverImage'
+export { PendingCard } from './PendingCard'
 export { ProgressBar } from './ProgressBar'
 export { RankingPodiumCard } from './RankingPodiumCard'
 export { RankingRow } from './RankingRow'
