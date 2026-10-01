@@ -25,3 +25,4 @@ export {
 } from './select'
 export { Textarea } from './textarea'
 export { ToggleGroup, ToggleGroupItem } from './toggle-group'
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip'

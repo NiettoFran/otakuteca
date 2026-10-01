@@ -1,7 +1,7 @@
 import { LogOut } from 'lucide-react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 
-import { Button } from '@/components/ui'
+import { Button, TooltipProvider } from '@/components/ui'
 import { cn, supabase } from '@/lib'
 
 const DASHBOARD_NAV = [
@@ -54,7 +54,9 @@ export const DashboardLayout = () => {
         </div>
       </header>
       <main className='mx-auto max-w-6xl px-4 py-8 sm:px-6'>
-        <Outlet />
+        <TooltipProvider delay={400}>
+          <Outlet />
+        </TooltipProvider>
       </main>
     </div>
   )
