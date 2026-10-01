@@ -1,7 +1,11 @@
+import { Eraser, Save, X } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
+import { Link } from 'react-router'
 
+import { TooltipHint } from '@/components/common'
 import {
   Button,
+  buttonVariants,
   Checkbox,
   Input,
   Label,
@@ -17,6 +21,7 @@ import {
 import { useGenres } from '@/hooks'
 import {
   clearDraft,
+  cn,
   getStatusLabel,
   getUnitLabels,
   loadDraft,
@@ -31,6 +36,7 @@ import {
 
 import { CoverImage } from './CoverImage'
 import { StarRating } from './StarRating'
+import { WorkFormSection } from './WorkFormSection'
 
 type Props = {
   initialValues: WorkFormValues
@@ -111,188 +117,227 @@ export const WorkForm = ({
           className='flex flex-wrap items-center justify-between gap-2 rounded-xl border border-cian/40 bg-cian/10 p-3 text-sm text-cian'
         >
           <span>Recuperamos lo que estabas cargando</span>
-          <Button type='button' variant='outline' size='sm' onClick={discardDraft}>
-            Descartar borrador
-          </Button>
+          <TooltipHint label='Borrar el borrador y volver a los datos guardados'>
+            <Button type='button' variant='outline' size='sm' onClick={discardDraft}>
+              <Eraser />
+              Descartar borrador
+            </Button>
+          </TooltipHint>
         </div>
       )}
 
-      <div className='space-y-2'>
-        <Label htmlFor='title'>Título</Label>
-        <Input
-          id='title'
-          value={values.title}
-          aria-invalid={!!errors.title}
-          onChange={(e) => change({ title: e.target.value })}
-        />
-        <FieldError message={errors.title} />
-      </div>
+      <div className='grid items-start gap-6 lg:grid-cols-5'>
+        <div className='space-y-6 lg:col-span-3'>
+          <WorkFormSection title='Información'>
+            <div className='space-y-2'>
+              <Label htmlFor='title'>Título</Label>
+              <Input
+                id='title'
+                value={values.title}
+                aria-invalid={!!errors.title}
+                onChange={(e) => change({ title: e.target.value })}
+              />
+              <FieldError message={errors.title} />
+            </div>
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <div className='space-y-2'>
+                <Label>Tipo</Label>
+                <ToggleGroup
+                  value={[values.type]}
+                  onValueChange={(v) => v[0] && change({ type: v[0] as WorkType })}
+                  aria-label='Tipo'
+                >
+                  <ToggleGroupItem value='anime' variant='outline'>
+                    Anime
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value='manga' variant='outline'>
+                    Manga
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+              <div className='space-y-2'>
+                <Label>Estado</Label>
+                <Select
+                  value={values.status || null}
+                  onValueChange={(v) => v && change({ status: v as WorkStatus })}
+                  items={STATUS_ORDER.map((s) => ({
+                    value: s,
+                    label: getStatusLabel(s, values.type),
+                  }))}
+                >
+                  <SelectTrigger className='w-full' aria-invalid={!!errors.status}>
+                    <SelectValue placeholder='Elegí un estado' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_ORDER.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {getStatusLabel(s, values.type)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError message={errors.status} />
+              </div>
+            </div>
+          </WorkFormSection>
 
-      <div className='grid gap-6 sm:grid-cols-2'>
-        <div className='space-y-2'>
-          <Label>Tipo</Label>
-          <ToggleGroup
-            value={[values.type]}
-            onValueChange={(v) => v[0] && change({ type: v[0] as WorkType })}
-            aria-label='Tipo'
-          >
-            <ToggleGroupItem value='anime' variant='outline'>
-              Anime
-            </ToggleGroupItem>
-            <ToggleGroupItem value='manga' variant='outline'>
-              Manga
-            </ToggleGroupItem>
-          </ToggleGroup>
+          <WorkFormSection title='Géneros'>
+            {genresLoading ? (
+              <p className='text-sm text-lavanda'>Cargando géneros…</p>
+            ) : genres.length === 0 ? (
+              <p className='text-sm text-lavanda'>
+                Todavía no hay géneros. Creá algunos desde la sección Géneros del panel.
+              </p>
+            ) : (
+              <fieldset className='flex max-h-72 flex-wrap gap-2 overflow-y-auto'>
+                <legend className='sr-only'>Géneros</legend>
+                {genres.map((g) => (
+                  <Label
+                    key={g.id}
+                    className='cursor-pointer rounded-full border border-ciruela px-3 py-1.5 font-normal hover:border-sakura'
+                  >
+                    <Checkbox
+                      checked={values.genreIds.includes(g.id)}
+                      onCheckedChange={(checked) => toggleGenre(g.id, checked)}
+                    />
+                    {g.name}
+                  </Label>
+                ))}
+              </fieldset>
+            )}
+          </WorkFormSection>
+
+          <WorkFormSection title='Reseñas'>
+            <div className='space-y-2'>
+              <Label htmlFor='short_review'>Reseña breve</Label>
+              <Textarea
+                id='short_review'
+                value={values.short_review}
+                onChange={(e) => change({ short_review: e.target.value })}
+              />
+            </div>
+            <div className='space-y-2'>
+              <Label htmlFor='long_review'>Reseña ampliada</Label>
+              <Textarea
+                id='long_review'
+                rows={6}
+                value={values.long_review}
+                onChange={(e) => change({ long_review: e.target.value })}
+              />
+            </div>
+          </WorkFormSection>
         </div>
-        <div className='space-y-2'>
-          <Label>Estado</Label>
-          <Select
-            value={values.status || null}
-            onValueChange={(v) => v && change({ status: v as WorkStatus })}
-            items={STATUS_ORDER.map((s) => ({ value: s, label: getStatusLabel(s, values.type) }))}
-          >
-            <SelectTrigger className='w-full' aria-invalid={!!errors.status}>
-              <SelectValue placeholder='Elegí un estado' />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_ORDER.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {getStatusLabel(s, values.type)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FieldError message={errors.status} />
-        </div>
-      </div>
 
-      <div className='space-y-2'>
-        <Label htmlFor='cover_url'>URL de la portada</Label>
-        <Input
-          id='cover_url'
-          type='url'
-          value={values.cover_url}
-          aria-invalid={!!errors.cover_url}
-          onChange={(e) => change({ cover_url: e.target.value })}
-        />
-        <FieldError message={errors.cover_url} />
-        {/^https?:\/\//i.test(values.cover_url.trim()) && (
-          <CoverImage
-            src={values.cover_url.trim()}
-            title='Vista previa de la portada'
-            className='mt-2 w-32 rounded-lg border border-ciruela'
-          />
-        )}
-      </div>
+        <div className='space-y-6 lg:col-span-2'>
+          <WorkFormSection title='Portada'>
+            <div className='space-y-2'>
+              <Label htmlFor='cover_url'>URL de la portada</Label>
+              <Input
+                id='cover_url'
+                type='url'
+                value={values.cover_url}
+                aria-invalid={!!errors.cover_url}
+                onChange={(e) => change({ cover_url: e.target.value })}
+              />
+              <FieldError message={errors.cover_url} />
+            </div>
+            {/^https?:\/\//i.test(values.cover_url.trim()) && (
+              <CoverImage
+                src={values.cover_url.trim()}
+                title='Vista previa de la portada'
+                className='mx-auto max-w-48 rounded-lg border border-ciruela'
+              />
+            )}
+          </WorkFormSection>
 
-      <fieldset className='space-y-2'>
-        <legend className='text-sm font-medium'>Géneros</legend>
-        {genresLoading ? (
-          <p className='text-sm text-lavanda'>Cargando géneros…</p>
-        ) : genres.length === 0 ? (
-          <p className='text-sm text-lavanda'>
-            Todavía no hay géneros. Creá algunos desde la sección Géneros del panel.
-          </p>
-        ) : (
-          <div className='flex flex-wrap gap-x-5 gap-y-2'>
-            {genres.map((g) => (
-              <Label key={g.id} className='cursor-pointer font-normal'>
-                <Checkbox
-                  checked={values.genreIds.includes(g.id)}
-                  onCheckedChange={(checked) => toggleGenre(g.id, checked)}
+          <WorkFormSection title='Progreso'>
+            <div className='grid gap-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='parts' className='capitalize'>
+                  {labels.parts}
+                </Label>
+                <Input
+                  id='parts'
+                  type='number'
+                  min={1}
+                  value={values.parts}
+                  aria-invalid={!!errors.parts}
+                  onChange={(e) => change({ parts: e.target.value })}
                 />
-                {g.name}
+                <FieldError message={errors.parts} />
+              </div>
+              <div className='space-y-2'>
+                <Label htmlFor='total_units'>Total de {labels.units}</Label>
+                <Input
+                  id='total_units'
+                  type='number'
+                  min={1}
+                  value={values.total_units}
+                  aria-invalid={!!errors.total_units}
+                  onChange={(e) => change({ total_units: e.target.value })}
+                />
+                <FieldError message={errors.total_units} />
+              </div>
+              <div className='space-y-2'>
+                <Label htmlFor='progress' className='capitalize'>
+                  {labels.done}
+                </Label>
+                <Input
+                  id='progress'
+                  type='number'
+                  min={0}
+                  value={values.progress}
+                  aria-invalid={!!errors.progress}
+                  onChange={(e) => change({ progress: e.target.value })}
+                />
+                <FieldError message={errors.progress} />
+              </div>
+            </div>
+          </WorkFormSection>
+
+          <WorkFormSection title='Valoración'>
+            <div className='space-y-2'>
+              <Label>Calificación</Label>
+              <StarRating rating={values.rating} onChange={(rating) => change({ rating })} />
+            </div>
+            <div className='space-y-2'>
+              <Label className='cursor-pointer'>
+                <Checkbox
+                  checked={values.is_favorite}
+                  onCheckedChange={(checked) => change({ is_favorite: checked })}
+                />
+                Favorita
               </Label>
-            ))}
-          </div>
-        )}
-      </fieldset>
-
-      <div className='space-y-2'>
-        <Label htmlFor='short_review'>Reseña breve</Label>
-        <Textarea
-          id='short_review'
-          value={values.short_review}
-          onChange={(e) => change({ short_review: e.target.value })}
-        />
-      </div>
-      <div className='space-y-2'>
-        <Label htmlFor='long_review'>Reseña ampliada</Label>
-        <Textarea
-          id='long_review'
-          rows={6}
-          value={values.long_review}
-          onChange={(e) => change({ long_review: e.target.value })}
-        />
-      </div>
-
-      <div className='grid gap-6 sm:grid-cols-3'>
-        <div className='space-y-2'>
-          <Label htmlFor='parts' className='capitalize'>
-            {labels.parts}
-          </Label>
-          <Input
-            id='parts'
-            type='number'
-            min={1}
-            value={values.parts}
-            aria-invalid={!!errors.parts}
-            onChange={(e) => change({ parts: e.target.value })}
-          />
-          <FieldError message={errors.parts} />
-        </div>
-        <div className='space-y-2'>
-          <Label htmlFor='total_units'>Total de {labels.units}</Label>
-          <Input
-            id='total_units'
-            type='number'
-            min={1}
-            value={values.total_units}
-            aria-invalid={!!errors.total_units}
-            onChange={(e) => change({ total_units: e.target.value })}
-          />
-          <FieldError message={errors.total_units} />
-        </div>
-        <div className='space-y-2'>
-          <Label htmlFor='progress' className='capitalize'>
-            {labels.done}
-          </Label>
-          <Input
-            id='progress'
-            type='number'
-            min={0}
-            value={values.progress}
-            aria-invalid={!!errors.progress}
-            onChange={(e) => change({ progress: e.target.value })}
-          />
-          <FieldError message={errors.progress} />
+              {losesRanking && (
+                <p role='status' className='text-sm text-dorado'>
+                  Sale del Ranking
+                </p>
+              )}
+            </div>
+          </WorkFormSection>
         </div>
       </div>
 
-      <div className='space-y-2'>
-        <Label>Calificación</Label>
-        <StarRating rating={values.rating} onChange={(rating) => change({ rating })} />
+      <div className='sticky bottom-0 -mx-4 space-y-3 border-t border-ciruela bg-noche/90 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6'>
+        {formError}
+        <div className='flex flex-wrap items-center justify-center gap-3'>
+          <TooltipHint label='Guardar los datos de la obra'>
+            <Button type='submit' disabled={submitting} className='rounded-full px-6'>
+              <Save className='size-4' />
+              {submitting ? 'Guardando…' : 'Guardar obra'}
+            </Button>
+          </TooltipHint>
+          <TooltipHint label='Volver al listado sin guardar'>
+            <Link
+              to='/dashboard'
+              className={cn(buttonVariants({ variant: 'outline' }), 'rounded-full px-6')}
+            >
+              <X className='size-4' />
+              Cancelar
+            </Link>
+          </TooltipHint>
+        </div>
       </div>
-
-      <div className='space-y-2'>
-        <Label className='cursor-pointer'>
-          <Checkbox
-            checked={values.is_favorite}
-            onCheckedChange={(checked) => change({ is_favorite: checked })}
-          />
-          Favorita
-        </Label>
-        {losesRanking && (
-          <p role='status' className='text-sm text-dorado'>
-            Sale del Ranking
-          </p>
-        )}
-      </div>
-
-      {formError}
-      <Button type='submit' disabled={submitting} className='rounded-full px-6'>
-        {submitting ? 'Guardando…' : 'Guardar obra'}
-      </Button>
     </form>
   )
 }
