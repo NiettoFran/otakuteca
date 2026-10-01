@@ -1,3 +1,5 @@
+export { EMPTY_DASHBOARD_FILTERS, hasDashboardFilters } from './dashboardFilters'
+export type { DashboardFilters } from './dashboardFilters'
 export { clearDraft, draftKey, loadDraft, saveDraft } from './drafts'
 export type { Genre, Work, WorkFormValues, WorkPayload, WorkStatus, WorkType } from './types'
 export { toWorkPayload, validateWork } from './validation'
