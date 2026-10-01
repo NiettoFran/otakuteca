@@ -45,3 +45,13 @@ export const countByGenre = (works: Work[]) => {
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, 'es'))
 }
+
+export const getStatsSummary = (works: Work[]) => {
+  const rated = works.flatMap((w) => (w.rating === null ? [] : [w.rating]))
+  return {
+    total: works.length,
+    completed: works.filter((w) => w.status === 'completed').length,
+    favorites: works.filter((w) => w.is_favorite).length,
+    averageRating: rated.length ? rated.reduce((a, b) => a + b, 0) / rated.length : null,
+  }
+}

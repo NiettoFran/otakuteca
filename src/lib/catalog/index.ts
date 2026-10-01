@@ -4,6 +4,7 @@ export {
   getStatusLabel,
   getUnitLabels,
   SLUG_STATUS,
+  STATUS_BG,
   STATUS_ORDER,
   STATUS_SLUG,
   TYPE_LABEL,
@@ -18,5 +19,6 @@ export {
   countByStatus,
   countByType,
   getHomeCounters,
+  getStatsSummary,
   NEUTRAL_STATUS_LABEL,
 } from './stats'

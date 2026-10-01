@@ -37,3 +37,10 @@ export const SLUG_STATUS: Record<string, WorkStatus> = {
 }
 
 export const STATUS_ORDER: WorkStatus[] = ['pending', 'in_progress', 'completed', 'dropped']
+
+export const STATUS_BG: Record<WorkStatus, string> = {
+  pending: 'bg-lavanda',
+  in_progress: 'bg-cian',
+  completed: 'bg-sakura',
+  dropped: 'bg-magenta',
+}
