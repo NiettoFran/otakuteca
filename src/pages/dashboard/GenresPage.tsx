@@ -1,8 +1,8 @@
-import { Check, Pencil, Plus, Search, SearchX, Tags, Trash2, X } from 'lucide-react'
+import { Check, Eraser, Pencil, Plus, Search, SearchX, Tags, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 
-import { ConfirmDialog, EmptyState, PanelEmptyState } from '@/components'
+import { ConfirmDialog, EmptyState, PageHeader, PanelEmptyState, TooltipHint } from '@/components'
 import { Button, Input } from '@/components/ui'
 import { useGenres } from '@/hooks'
 import { isSessionError, supabase, translateDbError, type Genre } from '@/lib'
@@ -77,12 +77,10 @@ export const GenresPage = () => {
   return (
     <section className='mx-auto max-w-3xl'>
       <title>Géneros · Panel · Otakuteca</title>
-      <div className='text-center'>
-        <h1 className='font-heading text-3xl font-extrabold'>Géneros</h1>
-        <p className='mt-1 text-lavanda'>
-          Creá, renombrá y ordená las etiquetas con las que clasificás tus obras.
-        </p>
-      </div>
+      <PageHeader
+        title='Géneros'
+        description='Creá, renombrá y eliminá las etiquetas con las que clasificás tus obras. Al borrar un género se le quita a todas las obras que lo tengan.'
+      />
       <div className='mt-8 space-y-3 rounded-2xl border border-ciruela bg-abismo p-4'>
         <form onSubmit={create} className='flex gap-2'>
           <Input
@@ -93,10 +91,12 @@ export const GenresPage = () => {
             onChange={(e) => setName(e.target.value)}
             className='h-9'
           />
-          <Button type='submit' className='h-9'>
-            <Plus className='size-4' />
-            Agregar
-          </Button>
+          <TooltipHint label='Crear el género con ese nombre'>
+            <Button type='submit' className='h-9'>
+              <Plus className='size-4' />
+              Agregar
+            </Button>
+          </TooltipHint>
         </form>
         {message && (
           <p role='alert' className='text-sm text-sakura'>
@@ -129,9 +129,12 @@ export const GenresPage = () => {
             icon={SearchX}
             title='No encontramos nada'
             action={
-              <Button onClick={() => setSearch('')} className='rounded-full'>
-                Limpiar búsqueda
-              </Button>
+              <TooltipHint label='Borrar el texto de la búsqueda'>
+                <Button onClick={() => setSearch('')} className='rounded-full'>
+                  <Eraser className='size-4' />
+                  Limpiar búsqueda
+                </Button>
+              </TooltipHint>
             }
           >
             No hay géneros que coincidan con «
@@ -165,37 +168,37 @@ export const GenresPage = () => {
                         onChange={(e) => setEditing({ id: genre.id, name: e.target.value })}
                         onKeyDown={(e) => e.key === 'Enter' && rename()}
                       />
-                      <Button size='icon' aria-label='Guardar nombre' onClick={rename}>
-                        <Check className='size-4' />
-                      </Button>
-                      <Button
-                        size='icon'
-                        variant='outline'
-                        aria-label='Cancelar'
-                        onClick={() => setEditing(null)}
-                      >
-                        <X className='size-4' />
-                      </Button>
+                      <TooltipHint label='Guardar el nuevo nombre'>
+                        <Button onClick={rename}>
+                          <Check className='size-4' />
+                          Guardar
+                        </Button>
+                      </TooltipHint>
+                      <TooltipHint label='Descartar los cambios'>
+                        <Button variant='outline' onClick={() => setEditing(null)}>
+                          <X className='size-4' />
+                          Cancelar
+                        </Button>
+                      </TooltipHint>
                     </>
                   ) : (
                     <>
                       <span className='flex-1 truncate'>{genre.name}</span>
-                      <Button
-                        size='icon'
-                        variant='outline'
-                        aria-label={`Renombrar ${genre.name}`}
-                        onClick={() => setEditing({ id: genre.id, name: genre.name })}
-                      >
-                        <Pencil className='size-4' />
-                      </Button>
-                      <Button
-                        size='icon'
-                        variant='destructive'
-                        aria-label={`Eliminar ${genre.name}`}
-                        onClick={() => askDelete(genre)}
-                      >
-                        <Trash2 className='size-4' />
-                      </Button>
+                      <TooltipHint label={`Cambiar el nombre de «${genre.name}»`}>
+                        <Button
+                          variant='outline'
+                          onClick={() => setEditing({ id: genre.id, name: genre.name })}
+                        >
+                          <Pencil className='size-4' />
+                          Renombrar
+                        </Button>
+                      </TooltipHint>
+                      <TooltipHint label={`Eliminar «${genre.name}»`}>
+                        <Button variant='destructive' onClick={() => askDelete(genre)}>
+                          <Trash2 className='size-4' />
+                          Eliminar
+                        </Button>
+                      </TooltipHint>
                     </>
                   )}
                 </li>

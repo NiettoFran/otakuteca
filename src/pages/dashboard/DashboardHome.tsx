@@ -1,14 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Library, Plus, SearchX } from 'lucide-react'
+import { Eraser, Library, Plus, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
 import {
   ConfirmDialog,
   EmptyState,
+  PageHeader,
   PaginationBar,
   PaginationSummary,
   PanelEmptyState,
+  TooltipHint,
   WorksFilters,
   WorksTable,
 } from '@/components'
@@ -24,6 +26,15 @@ import {
   type DashboardFilters,
   type Work,
 } from '@/lib'
+
+const AddWorkLink = () => (
+  <TooltipHint label='Cargar una obra nueva al catálogo'>
+    <Link to='/dashboard/obras/nueva' className={cn(buttonVariants(), 'rounded-full')}>
+      <Plus className='size-4' />
+      Agregar obra
+    </Link>
+  </TooltipHint>
+)
 
 export const DashboardHome = () => {
   const [page, setPage] = useState(1)
@@ -71,21 +82,20 @@ export const DashboardHome = () => {
   }
 
   return (
-    <section>
+    <section className='mx-auto max-w-5xl'>
       <title>Obras · Panel · Otakuteca</title>
-      <div className='flex flex-wrap items-center justify-between gap-3'>
-        <h1 className='font-heading text-3xl font-extrabold'>Obras</h1>
-        <Link to='/dashboard/obras/nueva' className={cn(buttonVariants(), 'rounded-full')}>
-          <Plus className='size-4' />
-          Agregar obra
-        </Link>
-      </div>
+      <PageHeader
+        title='Obras'
+        description='Todo tu catálogo en un solo lugar: buscá y filtrá tus animes y mangas, editá sus datos o eliminá los que ya no quieras.'
+      >
+        <AddWorkLink />
+      </PageHeader>
       {deleteError && (
         <p role='alert' className='mt-4 text-sm text-sakura'>
           No pudimos eliminar la obra. Revisá tu conexión y probá de nuevo.
         </p>
       )}
-      <div className='mt-6 space-y-4'>
+      <div className='mt-8 space-y-4'>
         <WorksFilters filters={filters} onChange={changeFilters} onClear={clearFilters} />
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
@@ -96,9 +106,12 @@ export const DashboardHome = () => {
             icon={SearchX}
             title='No encontramos nada'
             action={
-              <Button onClick={clearFilters} className='rounded-full'>
-                Limpiar filtros
-              </Button>
+              <TooltipHint label='Quitar la búsqueda y todos los filtros'>
+                <Button onClick={clearFilters} className='rounded-full'>
+                  <Eraser className='size-4' />
+                  Limpiar filtros
+                </Button>
+              </TooltipHint>
             }
           >
             {debouncedSearch.trim() ? (
@@ -115,11 +128,7 @@ export const DashboardHome = () => {
           <PanelEmptyState
             icon={Library}
             title='Todavía no cargaste ninguna obra'
-            action={
-              <Link to='/dashboard/obras/nueva' className={cn(buttonVariants(), 'rounded-full')}>
-                Agregar obra
-              </Link>
-            }
+            action={<AddWorkLink />}
           >
             ¡Empezá con la primera!
           </PanelEmptyState>

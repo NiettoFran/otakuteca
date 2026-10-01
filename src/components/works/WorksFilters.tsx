@@ -1,5 +1,6 @@
-import { Search, Star, X } from 'lucide-react'
+import { Eraser, Search, Star } from 'lucide-react'
 
+import { TooltipHint } from '@/components/common'
 import {
   Button,
   Input,
@@ -103,29 +104,33 @@ export const WorksFilters = ({ filters, onChange, onClear }: Props) => {
           ))}
         </SelectContent>
       </Select>
-      <button
-        type='button'
-        aria-pressed={filters.favorites}
-        onClick={() => onChange({ favorites: !filters.favorites })}
-        className={cn(
-          'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-cian focus-visible:outline-none',
-          filters.favorites
-            ? 'border-sakura bg-sakura text-noche'
-            : 'border-ciruela bg-abismo text-lavanda hover:text-sakura-claro'
-        )}
-      >
-        <Star className='size-4' />
-        Solo favoritas
-      </button>
-      {hasDashboardFilters(filters) && (
-        <Button
-          variant='ghost'
-          onClick={onClear}
-          className='h-9 text-sakura hover:text-sakura-claro'
+      <TooltipHint label='Mostrar solo las obras marcadas como favoritas'>
+        <button
+          type='button'
+          aria-pressed={filters.favorites}
+          onClick={() => onChange({ favorites: !filters.favorites })}
+          className={cn(
+            'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-cian focus-visible:outline-none',
+            filters.favorites
+              ? 'border-sakura bg-sakura text-noche'
+              : 'border-ciruela bg-abismo text-lavanda hover:text-sakura-claro'
+          )}
         >
-          <X className='size-4' />
-          Limpiar filtros
-        </Button>
+          <Star className='size-4' />
+          Solo favoritas
+        </button>
+      </TooltipHint>
+      {hasDashboardFilters(filters) && (
+        <TooltipHint label='Quitar la búsqueda y todos los filtros'>
+          <Button
+            variant='ghost'
+            onClick={onClear}
+            className='h-9 text-sakura hover:text-sakura-claro'
+          >
+            <Eraser className='size-4' />
+            Limpiar filtros
+          </Button>
+        </TooltipHint>
       )}
     </div>
   )

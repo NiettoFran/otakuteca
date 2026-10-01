@@ -1,6 +1,7 @@
-import { Star } from 'lucide-react'
+import { Pencil, Star, Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { TooltipHint } from '@/components/common'
 import { Button, buttonVariants } from '@/components/ui'
 import { TYPE_LABEL, type Work } from '@/lib'
 
@@ -16,7 +17,7 @@ export const WorksTable = ({ works, onDelete }: Props) => (
           <th className='p-4 font-semibold'>Título</th>
           <th className='hidden w-28 p-4 font-semibold sm:table-cell'>Tipo</th>
           <th className='w-36 p-4 font-semibold'>Estado</th>
-          <th className='w-48 p-4 text-right font-semibold'>Acciones</th>
+          <th className='w-56 p-4 text-right font-semibold'>Acciones</th>
         </tr>
       </thead>
       <tbody className='divide-y divide-ciruela'>
@@ -38,15 +39,21 @@ export const WorksTable = ({ works, onDelete }: Props) => (
             </td>
             <td className='p-4'>
               <div className='flex justify-end gap-2'>
-                <Link
-                  to={`/dashboard/obras/${work.id}`}
-                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                >
-                  Editar
-                </Link>
-                <Button variant='destructive' size='sm' onClick={() => onDelete(work)}>
-                  Eliminar
-                </Button>
+                <TooltipHint label={`Editar «${work.title}»`}>
+                  <Link
+                    to={`/dashboard/obras/${work.id}`}
+                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                  >
+                    <Pencil />
+                    Editar
+                  </Link>
+                </TooltipHint>
+                <TooltipHint label={`Eliminar «${work.title}»`}>
+                  <Button variant='destructive' size='sm' onClick={() => onDelete(work)}>
+                    <Trash2 />
+                    Eliminar
+                  </Button>
+                </TooltipHint>
               </div>
             </td>
           </tr>

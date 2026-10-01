@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import { TooltipHint } from '@/components/common'
 import {
   Button,
   Select,
@@ -40,27 +41,31 @@ export const PaginationBar = ({ page, pageSize, total, onPageChange, onPageSizeC
           </Select>
         </label>
         <div className='flex items-center gap-2'>
-          <Button
-            variant='outline'
-            size='sm'
-            disabled={page <= 1}
-            onClick={() => onPageChange(page - 1)}
-            aria-label='Página anterior'
-          >
-            <ChevronLeft className='size-4' />
-          </Button>
+          <TooltipHint label='Ir a la página anterior'>
+            <Button
+              variant='outline'
+              size='sm'
+              disabled={page <= 1}
+              onClick={() => onPageChange(page - 1)}
+            >
+              <ChevronLeft className='size-4' />
+              Anterior
+            </Button>
+          </TooltipHint>
           <span>
             {page} / {pageCount}
           </span>
-          <Button
-            variant='outline'
-            size='sm'
-            disabled={page >= pageCount}
-            onClick={() => onPageChange(page + 1)}
-            aria-label='Página siguiente'
-          >
-            <ChevronRight className='size-4' />
-          </Button>
+          <TooltipHint label='Ir a la página siguiente'>
+            <Button
+              variant='outline'
+              size='sm'
+              disabled={page >= pageCount}
+              onClick={() => onPageChange(page + 1)}
+            >
+              Siguiente
+              <ChevronRight className='size-4' />
+            </Button>
+          </TooltipHint>
         </div>
       </div>
     </div>
