@@ -79,6 +79,11 @@ feature se cierra con `pnpm lint`, `pnpm build` y una verificación manual en el
   defecto, ampliable hasta 100 (`DEFAULT_PAGE_SIZE`, `PAGE_SIZE_OPTIONS` y `pageRange` en
   `src/lib/api/pagination.ts`). Los controles van arriba (`PaginationBar`) y el "Mostrando x–y de
   N" abajo (`PaginationSummary`). Las mutaciones invalidan la `queryKey` del listado.
+- **Páginas del dashboard**: todas se ven iguales. (1) Encabezado con `PageHeader` (título +
+  descripción de lo que hace la página). (2) Contenido centrado (`mx-auto max-w-3xl`, o `max-w-5xl`
+  si hay tabla ancha). (3) Todo botón lleva ícono + texto + tooltip con `TooltipHint`; el
+  `cursor: pointer` de los botones es una regla global en `src/styles/index.css`. Los listados
+  vacíos o sin resultados usan `PanelEmptyState`, no `EmptyState`.
 
 ## Reglas generales
 
