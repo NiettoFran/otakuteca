@@ -5,6 +5,17 @@ All notable changes to Otakuteca. Format based on
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-02
+
+### Fixed
+
+- `vercel.json`: the SPA rewrite now sends every route to the app, so deep links (e.g.
+  `/animes/<id>` or `/dashboard/generos`) resolve on reload instead of returning a 404.
+
+### Added
+
+- `README.md` with the project overview, stack and local setup.
+
 ## [1.0.0] - 2026-10-01
 
 ### Added
