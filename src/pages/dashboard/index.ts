@@ -1,0 +1,5 @@
+export { DashboardHome } from './DashboardHome'
+export { GenresPage } from './GenresPage'
+export { RankingEditorPage } from './RankingEditorPage'
+export { WorkEditor } from './WorkEditor'
+export { WorkEditPage } from './WorkEditPage'
