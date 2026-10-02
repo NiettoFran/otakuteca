@@ -5,6 +5,8 @@ All notable changes to Otakuteca. Format based on
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-01
+
 ### Added
 
 - **Public catalog** (feature `001-otakuteca-catalog`): Home with counters, Anime and Manga grids
@@ -22,6 +24,12 @@ All notable changes to Otakuteca. Format based on
   (`cover-fallback.svg`) and Spanish page titles.
 - shadcn components: input, textarea, label, select, checkbox, badge, alert-dialog, toggle-group.
 - `.env.example` and `CHANGELOG.md`.
+- **Dashboard**: paginated works table with server-side filters, genre search, drag-and-drop Ranking
+  editor, two-column work form and a hamburger menu on mobile.
+- **UI polish**: redesigned Stats (summary tiles, status breakdown), Pending (compact cards),
+  Roulette (spin animation), Ranking (podium), Catalog (status counts), Home (favorites, recent and
+  shortcut sections), 404 and Login (icons, password toggle), plus an `ErrorState` with a retry
+  button.
 
 ### Changed
 
