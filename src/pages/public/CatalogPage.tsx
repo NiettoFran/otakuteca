@@ -1,7 +1,7 @@
 import { Library } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 
-import { CardGrid, CatalogFilters, EmptyState, WorkCard } from '@/components'
+import { CardGrid, CatalogFilters, EmptyState, ErrorState, WorkCard } from '@/components'
 import { buttonVariants } from '@/components/ui'
 import { useCatalog } from '@/hooks'
 import {
@@ -24,7 +24,7 @@ const DESCRIPTION: Record<WorkType, string> = {
 
 export const CatalogPage = ({ type }: { type: WorkType }) => {
   const [params] = useSearchParams()
-  const { works, loading, error } = useCatalog()
+  const { works, loading, error, reload } = useCatalog()
   const filters = parseFilters(params)
   const ofType = works.filter((w) => w.type === type)
   const visible = sortWorks(applyFilters(ofType, filters))
@@ -45,7 +45,7 @@ export const CatalogPage = ({ type }: { type: WorkType }) => {
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
-          <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+          <ErrorState what='el catálogo' onRetry={reload} />
         ) : visible.length === 0 ? (
           <EmptyState icon={Library} message='Aún no hay obras en esta categoría'>
             {hasActiveFilters(filters) && (

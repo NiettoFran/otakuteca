@@ -2,7 +2,7 @@ import { Check, Eraser, Pencil, Plus, Search, SearchX, Tags, Trash2, X } from 'l
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 
-import { ConfirmDialog, EmptyState, PageHeader, PanelEmptyState, TooltipHint } from '@/components'
+import { ConfirmDialog, ErrorState, PageHeader, PanelEmptyState, TooltipHint } from '@/components'
 import { Button, Input } from '@/components/ui'
 import { useGenres } from '@/hooks'
 import { isSessionError, supabase, translateDbError, type Genre } from '@/lib'
@@ -119,7 +119,7 @@ export const GenresPage = () => {
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
-          <EmptyState message='No pudimos cargar los géneros. Probá recargar la página' />
+          <ErrorState what='los géneros' onRetry={reload} />
         ) : genres.length === 0 ? (
           <PanelEmptyState icon={Tags} title='Todavía no hay géneros'>
             Creá el primero con el campo de arriba.

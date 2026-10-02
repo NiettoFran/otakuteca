@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, GripVertical, Plus, Save, Trophy, X } from 'lucide-
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { EmptyState, PageHeader, PanelEmptyState, TooltipHint } from '@/components'
+import { ErrorState, PageHeader, PanelEmptyState, TooltipHint } from '@/components'
 import { Button } from '@/components/ui'
 import { useCatalog } from '@/hooks'
 import {
@@ -200,7 +200,7 @@ export const RankingEditorPage = () => {
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
-          <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+          <ErrorState what='el catálogo' onRetry={reload} />
         ) : !hasFavorites ? (
           <PanelEmptyState icon={Trophy} title='Todavía no tenés animes favoritos'>
             Primero marcá algunos como favoritos desde la edición de cada obra.

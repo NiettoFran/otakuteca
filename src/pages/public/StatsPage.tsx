@@ -1,13 +1,13 @@
 import { CircleCheck, Heart, Library, Star } from 'lucide-react'
 
-import { BarChart, EmptyState, StatTile, StatusBreakdown } from '@/components'
+import { BarChart, ErrorState, StatTile, StatusBreakdown } from '@/components'
 import { useCatalog } from '@/hooks'
 import { countByGenre, countByStatus, countByType, getStatsSummary, TYPE_LABEL } from '@/lib'
 
 const MAX_GENRES = 10
 
 export const StatsPage = () => {
-  const { works, loading, error } = useCatalog()
+  const { works, loading, error, reload } = useCatalog()
   const summary = getStatsSummary(works)
   const genres = countByGenre(works)
 
@@ -24,7 +24,7 @@ export const StatsPage = () => {
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
-          <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+          <ErrorState what='el catálogo' onRetry={reload} />
         ) : (
           <div className='space-y-6'>
             <div className='grid grid-cols-2 gap-4 lg:grid-cols-4'>

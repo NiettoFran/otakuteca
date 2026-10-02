@@ -1,11 +1,11 @@
 import { Library } from 'lucide-react'
 
-import { CardGrid, EmptyState, PendingCard } from '@/components'
+import { CardGrid, EmptyState, ErrorState, PendingCard } from '@/components'
 import { useCatalog } from '@/hooks'
 import { sortWorks } from '@/lib'
 
 export const PendingPage = () => {
-  const { works, loading, error } = useCatalog()
+  const { works, loading, error, reload } = useCatalog()
   const pending = sortWorks(works.filter((w) => w.status === 'pending'))
 
   const animes = pending.filter((w) => w.type === 'anime').length
@@ -29,7 +29,7 @@ export const PendingPage = () => {
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
-          <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+          <ErrorState what='el catálogo' onRetry={reload} />
         ) : pending.length === 0 ? (
           <EmptyState icon={Library} message='Aún no hay obras en esta categoría' />
         ) : (

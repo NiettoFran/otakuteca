@@ -1,7 +1,7 @@
 import { ArrowLeft, SearchX } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 
-import { EmptyState, WorkDetail } from '@/components'
+import { EmptyState, ErrorState, WorkDetail } from '@/components'
 import { useWork } from '@/hooks'
 import { TYPE_PATH, type WorkType } from '@/lib'
 
@@ -29,7 +29,7 @@ export const WorkPage = ({ type }: { type: WorkType }) => {
       {loading ? (
         <p className='py-12 text-center text-lavanda'>Cargando…</p>
       ) : error ? (
-        <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+        <ErrorState what='el catálogo' />
       ) : notFound || !work ? (
         <EmptyState icon={SearchX} message='Obra no encontrada'>
           {backLink}

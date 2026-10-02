@@ -3,7 +3,7 @@ import { BookOpen, Dices, ExternalLink, Tv } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
-import { EmptyState, RouletteReel, WorkDetail } from '@/components'
+import { EmptyState, ErrorState, RouletteReel, WorkDetail } from '@/components'
 import { Button, buttonVariants, ToggleGroup, ToggleGroupItem } from '@/components/ui'
 import { useCatalog } from '@/hooks'
 import { cn, pickRandomPending, TYPE_PATH, type Work, type WorkType } from '@/lib'
@@ -13,7 +13,7 @@ const TICK_MS = 90
 
 export const RoulettePage = () => {
   const [params, setParams] = useSearchParams()
-  const { works, loading, error } = useCatalog()
+  const { works, loading, error, reload } = useCatalog()
   const reduced = useReducedMotion()
   const type: WorkType = params.get('tipo') === 'manga' ? 'manga' : 'anime'
   const [result, setResult] = useState<Work | null>(null)
@@ -95,7 +95,7 @@ export const RoulettePage = () => {
 
       <div className='mt-10'>
         {error ? (
-          <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+          <ErrorState what='el catálogo' onRetry={reload} />
         ) : spun && !spinning && !current ? (
           <EmptyState
             icon={Dices}

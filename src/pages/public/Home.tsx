@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { BookCheck, ChartColumn, Clock, Dices, Heart, Trophy, Tv } from 'lucide-react'
 import { Link } from 'react-router'
 
-import { CardGrid, Counter, HomeSection, WorkCard } from '@/components'
+import { CardGrid, Counter, ErrorState, HomeSection, WorkCard } from '@/components'
 import { buttonVariants } from '@/components/ui'
 import { useCatalog, useMotionSet } from '@/hooks'
 import { cn, getHomeCounters } from '@/lib'
@@ -31,7 +31,7 @@ const BRAND_GLOW = `radial-gradient(closest-side, ${[
 
 export const Home = () => {
   const m = useMotionSet()
-  const { works, error } = useCatalog()
+  const { works, error, reload } = useCatalog()
   const counters = getHomeCounters(works)
   const favorites = works.filter((w) => w.is_favorite).slice(0, FEATURED_COUNT)
   const recent = [...works]
@@ -171,9 +171,9 @@ export const Home = () => {
       </HomeSection>
 
       {error && (
-        <p className='mt-4 text-center text-sm text-lavanda'>
-          No pudimos cargar el catálogo. Probá recargar la página
-        </p>
+        <div className='mt-16'>
+          <ErrorState what='el catálogo' onRetry={reload} />
+        </div>
       )}
     </>
   )

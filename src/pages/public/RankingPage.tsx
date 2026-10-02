@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion'
 import { Trophy } from 'lucide-react'
 
-import { EmptyState, RankingPodiumCard, RankingRow } from '@/components'
+import { EmptyState, ErrorState, RankingPodiumCard, RankingRow } from '@/components'
 import { useCatalog, useMotionSet } from '@/hooks'
 import { getRanking } from '@/lib'
 
 export const RankingPage = () => {
   const m = useMotionSet()
-  const { works, loading, error } = useCatalog()
+  const { works, loading, error, reload } = useCatalog()
   const ranking = getRanking(works)
   const podium = ranking.slice(0, 3)
   const rest = ranking.slice(3)
@@ -28,7 +28,7 @@ export const RankingPage = () => {
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
-          <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+          <ErrorState what='el catálogo' onRetry={reload} />
         ) : ranking.length === 0 ? (
           <EmptyState icon={Trophy} message='Todavía no armé mi top. ¡Volvé pronto!' />
         ) : (

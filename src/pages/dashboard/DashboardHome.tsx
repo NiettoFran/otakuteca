@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router'
 
 import {
   ConfirmDialog,
-  EmptyState,
+  ErrorState,
   PageHeader,
   PaginationBar,
   PaginationSummary,
@@ -49,6 +49,7 @@ export const DashboardHome = () => {
     isPending: loading,
     isError: error,
     isPlaceholderData: refreshing,
+    refetch,
   } = useWorksPage(page, pageSize, appliedFilters)
 
   const clearFilters = () => {
@@ -100,7 +101,7 @@ export const DashboardHome = () => {
         {loading ? (
           <p className='py-12 text-center text-lavanda'>Cargando…</p>
         ) : error ? (
-          <EmptyState message='No pudimos cargar el catálogo. Probá recargar la página' />
+          <ErrorState what='el catálogo' onRetry={() => refetch()} />
         ) : total === 0 && filtered ? (
           <PanelEmptyState
             icon={SearchX}
