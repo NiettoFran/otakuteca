@@ -23,8 +23,8 @@ export const PaginationBar = ({ page, pageSize, total, onPageChange, onPageSizeC
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
 
   return (
-    <div className='flex flex-wrap items-center justify-end gap-3 text-sm text-lavanda'>
-      <div className='flex flex-wrap items-center gap-3'>
+    <div className='flex flex-wrap items-center justify-between gap-3 text-sm text-lavanda sm:justify-end'>
+      <div className='flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto'>
         <label className='flex items-center gap-2'>
           Por página
           <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
@@ -40,7 +40,7 @@ export const PaginationBar = ({ page, pageSize, total, onPageChange, onPageSizeC
             </SelectContent>
           </Select>
         </label>
-        <div className='flex items-center gap-2'>
+        <div className='flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start'>
           <TooltipHint label='Ir a la página anterior'>
             <Button
               variant='outline'

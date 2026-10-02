@@ -75,10 +75,10 @@ const RankingEditor = ({ works, reload }: { works: Work[]; reload: () => void })
                 <Reorder.Item
                   key={work.id}
                   value={work}
-                  className='flex cursor-grab items-center gap-3 bg-abismo px-4 py-3 select-none hover:bg-ciruela/30 active:cursor-grabbing'
+                  className='flex cursor-grab items-center gap-2 bg-abismo px-3 py-3 select-none hover:bg-ciruela/30 active:cursor-grabbing sm:gap-3 sm:px-4'
                 >
                   <GripVertical className='size-5 shrink-0 text-lavanda' aria-hidden />
-                  <span className='w-8 shrink-0 font-heading font-bold text-dorado'>
+                  <span className='w-7 shrink-0 font-heading font-bold text-dorado sm:w-8'>
                     #{index + 1}
                   </span>
                   <span className='min-w-0 flex-1 truncate' title={work.title}>
@@ -92,7 +92,7 @@ const RankingEditor = ({ works, reload }: { works: Work[]; reload: () => void })
                       onClick={() => move(index, -1)}
                     >
                       <ArrowUp />
-                      Subir
+                      <span className='sr-only sm:not-sr-only'>Subir</span>
                     </Button>
                   </TooltipHint>
                   <TooltipHint label={`Bajar «${work.title}» un puesto`}>
@@ -103,7 +103,7 @@ const RankingEditor = ({ works, reload }: { works: Work[]; reload: () => void })
                       onClick={() => move(index, 1)}
                     >
                       <ArrowDown />
-                      Bajar
+                      <span className='sr-only sm:not-sr-only'>Bajar</span>
                     </Button>
                   </TooltipHint>
                   <TooltipHint label={`Sacar «${work.title}» del top`}>
@@ -113,7 +113,7 @@ const RankingEditor = ({ works, reload }: { works: Work[]; reload: () => void })
                       onClick={() => setTop((prev) => prev.filter((w) => w.id !== work.id))}
                     >
                       <X />
-                      Quitar
+                      <span className='sr-only sm:not-sr-only'>Quitar</span>
                     </Button>
                   </TooltipHint>
                 </Reorder.Item>
@@ -172,7 +172,7 @@ const RankingEditor = ({ works, reload }: { works: Work[]; reload: () => void })
                       onClick={() => setTop((prev) => [...prev, work])}
                     >
                       <Plus />
-                      Agregar al top
+                      <span className='sr-only sm:not-sr-only'>Agregar al top</span>
                     </Button>
                   </TooltipHint>
                 </li>

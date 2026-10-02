@@ -151,7 +151,7 @@ export const GenresPage = () => {
               {visible.map((genre) => (
                 <li
                   key={genre.id}
-                  className='flex items-center gap-3 px-4 py-3 hover:bg-ciruela/30'
+                  className='flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 hover:bg-ciruela/30'
                 >
                   <span
                     aria-hidden
@@ -167,6 +167,7 @@ export const GenresPage = () => {
                         value={editing.name}
                         onChange={(e) => setEditing({ id: genre.id, name: e.target.value })}
                         onKeyDown={(e) => e.key === 'Enter' && rename()}
+                        className='min-w-0 flex-1 basis-40'
                       />
                       <TooltipHint label='Guardar el nuevo nombre'>
                         <Button onClick={rename}>
@@ -183,20 +184,20 @@ export const GenresPage = () => {
                     </>
                   ) : (
                     <>
-                      <span className='flex-1 truncate'>{genre.name}</span>
+                      <span className='min-w-0 flex-1 truncate'>{genre.name}</span>
                       <TooltipHint label={`Cambiar el nombre de «${genre.name}»`}>
                         <Button
                           variant='outline'
                           onClick={() => setEditing({ id: genre.id, name: genre.name })}
                         >
                           <Pencil className='size-4' />
-                          Renombrar
+                          <span className='sr-only sm:not-sr-only'>Renombrar</span>
                         </Button>
                       </TooltipHint>
                       <TooltipHint label={`Eliminar «${genre.name}»`}>
                         <Button variant='destructive' onClick={() => askDelete(genre)}>
                           <Trash2 className='size-4' />
-                          Eliminar
+                          <span className='sr-only sm:not-sr-only'>Eliminar</span>
                         </Button>
                       </TooltipHint>
                     </>

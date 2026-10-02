@@ -31,10 +31,10 @@ export const WorksFilters = ({ filters, onChange, onClear }: Props) => {
 
   return (
     <div
-      className='flex flex-wrap items-center gap-3 rounded-2xl border border-ciruela bg-abismo p-3'
+      className='grid grid-cols-2 gap-3 rounded-2xl border border-ciruela bg-abismo p-3 sm:flex sm:flex-wrap sm:items-center'
       role='search'
     >
-      <div className='relative min-w-full flex-1 sm:min-w-64'>
+      <div className='relative col-span-2 min-w-0 sm:min-w-64 sm:flex-1'>
         <Search className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-lavanda' />
         <Input
           type='search'
@@ -86,7 +86,10 @@ export const WorksFilters = ({ filters, onChange, onClear }: Props) => {
         value={filters.genreId === null ? 'all' : String(filters.genreId)}
         onValueChange={(v) => onChange({ genreId: v === 'all' ? null : Number(v) })}
       >
-        <SelectTrigger aria-label='Filtrar por género' className='h-9 w-full sm:w-48'>
+        <SelectTrigger
+          aria-label='Filtrar por género'
+          className='col-span-2 h-9 w-full sm:col-span-1 sm:w-48'
+        >
           <SelectValue>
             {(v: string) =>
               v === 'all'
@@ -110,7 +113,7 @@ export const WorksFilters = ({ filters, onChange, onClear }: Props) => {
           aria-pressed={filters.favorites}
           onClick={() => onChange({ favorites: !filters.favorites })}
           className={cn(
-            'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-cian focus-visible:outline-none',
+            'inline-flex h-9 items-center justify-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-cian focus-visible:outline-none',
             filters.favorites
               ? 'border-sakura bg-sakura text-noche'
               : 'border-ciruela bg-abismo text-lavanda hover:text-sakura-claro'

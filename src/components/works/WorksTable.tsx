@@ -1,64 +1,65 @@
-import { Pencil, Star, Trash2 } from 'lucide-react'
-import { Link } from 'react-router'
+import { Star } from 'lucide-react'
 
-import { TooltipHint } from '@/components/common'
-import { Button, buttonVariants } from '@/components/ui'
 import { TYPE_LABEL, type Work } from '@/lib'
 
 import { StatusBadge } from './StatusBadge'
+import { WorkRowActions } from './WorkRowActions'
 
 type Props = { works: Work[]; onDelete: (work: Work) => void }
 
+const FavoriteStar = () => (
+  <Star className='size-4 shrink-0 fill-dorado text-dorado' aria-label='Favorita' />
+)
+
 export const WorksTable = ({ works, onDelete }: Props) => (
-  <div className='overflow-x-auto rounded-2xl border border-ciruela bg-abismo'>
-    <table className='w-full table-fixed text-left text-sm'>
-      <thead className='border-b border-uva bg-ciruela/60 text-xs tracking-wider text-lavanda uppercase'>
-        <tr>
-          <th className='p-4 font-semibold'>Título</th>
-          <th className='hidden w-28 p-4 font-semibold sm:table-cell'>Tipo</th>
-          <th className='w-36 p-4 font-semibold'>Estado</th>
-          <th className='w-56 p-4 text-right font-semibold'>Acciones</th>
-        </tr>
-      </thead>
-      <tbody className='divide-y divide-ciruela'>
-        {works.map((work) => (
-          <tr key={work.id} className='hover:bg-ciruela/30'>
-            <td className='p-4'>
-              <span className='flex min-w-0 items-center gap-2 font-medium'>
-                <span className='truncate' title={work.title}>
-                  {work.title}
-                </span>
-                {work.is_favorite && (
-                  <Star className='size-4 shrink-0 fill-dorado text-dorado' aria-label='Favorita' />
-                )}
-              </span>
-            </td>
-            <td className='hidden p-4 text-lavanda sm:table-cell'>{TYPE_LABEL[work.type]}</td>
-            <td className='p-4'>
-              <StatusBadge status={work.status} type={work.type} />
-            </td>
-            <td className='p-4'>
-              <div className='flex justify-end gap-2'>
-                <TooltipHint label={`Editar «${work.title}»`}>
-                  <Link
-                    to={`/dashboard/obras/${work.id}`}
-                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                  >
-                    <Pencil />
-                    Editar
-                  </Link>
-                </TooltipHint>
-                <TooltipHint label={`Eliminar «${work.title}»`}>
-                  <Button variant='destructive' size='sm' onClick={() => onDelete(work)}>
-                    <Trash2 />
-                    Eliminar
-                  </Button>
-                </TooltipHint>
-              </div>
-            </td>
+  <>
+    <ul className='divide-y divide-ciruela overflow-hidden rounded-2xl border border-ciruela bg-abismo md:hidden'>
+      {works.map((work) => (
+        <li key={work.id} className='space-y-3 p-4'>
+          <div className='flex items-start justify-between gap-3'>
+            <p className='min-w-0 font-medium break-words'>{work.title}</p>
+            {work.is_favorite && <FavoriteStar />}
+          </div>
+          <div className='flex flex-wrap items-center gap-x-3 gap-y-2'>
+            <span className='text-sm text-lavanda'>{TYPE_LABEL[work.type]}</span>
+            <StatusBadge status={work.status} type={work.type} />
+          </div>
+          <WorkRowActions work={work} onDelete={onDelete} />
+        </li>
+      ))}
+    </ul>
+    <div className='hidden overflow-x-auto rounded-2xl border border-ciruela bg-abismo md:block'>
+      <table className='w-full table-fixed text-left text-sm'>
+        <thead className='border-b border-uva bg-ciruela/60 text-xs tracking-wider text-lavanda uppercase'>
+          <tr>
+            <th className='p-4 font-semibold'>Título</th>
+            <th className='w-28 p-4 font-semibold'>Tipo</th>
+            <th className='w-36 p-4 font-semibold'>Estado</th>
+            <th className='w-56 p-4 text-right font-semibold'>Acciones</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody className='divide-y divide-ciruela'>
+          {works.map((work) => (
+            <tr key={work.id} className='hover:bg-ciruela/30'>
+              <td className='p-4'>
+                <span className='flex min-w-0 items-center gap-2 font-medium'>
+                  <span className='truncate' title={work.title}>
+                    {work.title}
+                  </span>
+                  {work.is_favorite && <FavoriteStar />}
+                </span>
+              </td>
+              <td className='p-4 text-lavanda'>{TYPE_LABEL[work.type]}</td>
+              <td className='p-4'>
+                <StatusBadge status={work.status} type={work.type} />
+              </td>
+              <td className='p-4'>
+                <WorkRowActions work={work} onDelete={onDelete} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
 )
